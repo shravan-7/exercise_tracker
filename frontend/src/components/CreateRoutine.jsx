@@ -1,16 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
+import { toast } from "react-toastify";
+
+const exerciseTypes = [
+  "Strength",
+  "Cardio",
+  "Flexibility",
+  "Balance",
+  "Plyometric",
+  "Bodyweight",
+];
 
 function CreateRoutine() {
   const [name, setName] = useState("");
-  const [exercises, setExercises] = useState([
-    { name: "", sets: "", reps: "" },
-  ]);
+  const [exercises, setExercises] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const history = useHistory();
 
+  useEffect(() => {
+    setExercises([
+      { type: "", sets: "", reps: "", duration: "", distance: "" },
+    ]);
+  }, []);
+
   const handleAddExercise = () => {
-    setExercises([...exercises, { name: "", sets: "", reps: "" }]);
+    setExercises([
+      ...exercises,
+      { type: "", sets: "", reps: "", duration: "", distance: "" },
+    ]);
+  };
+
+  const handleRemoveExercise = (index) => {
+    const newExercises = exercises.filter((_, i) => i !== index);
+    setExercises(newExercises);
   };
 
   const handleExerciseChange = (index, field, value) => {
@@ -19,19 +43,65 @@ function CreateRoutine() {
     setExercises(newExercises);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!name.trim()) newErrors.name = "Routine name is required";
+
+    exercises.forEach((exercise, index) => {
+      if (!exercise.type)
+        newErrors[`type_${index}`] = "Exercise type is required";
+
+      if (["Strength", "Plyometric", "Bodyweight"].includes(exercise.type)) {
+        if (!exercise.sets) newErrors[`sets_${index}`] = "Sets are required";
+        if (!exercise.reps) newErrors[`reps_${index}`] = "Reps are required";
+      }
+
+      if (["Cardio", "Flexibility", "Balance"].includes(exercise.type)) {
+        if (!exercise.duration)
+          newErrors[`duration_${index}`] = "Duration is required";
+      }
+
+      if (exercise.type === "Cardio") {
+        if (!exercise.distance)
+          newErrors[`distance_${index}`] = "Distance is required";
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    const routineData = {
+      name,
+      exercises: exercises.map((ex) => ({
+        exercise_type: ex.type, // Change this line
+        sets: ex.sets || null,
+        reps: ex.reps || null,
+        duration: ex.duration || null,
+        distance: ex.distance || null,
+      })),
+    };
+
     try {
-      await axios.post(
-        "http://localhost:8000/api/routines/",
-        { name, exercises },
-        {
-          headers: { Authorization: `Token ${localStorage.getItem("token")}` },
+      await axios.post("http://localhost:8000/api/routines/", routineData, {
+        headers: {
+          Authorization: `Token ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
+      toast.success("Routine created successfully!");
       history.push("/dashboard");
     } catch (error) {
-      console.error("Error creating routine:", error);
+      toast.error("Failed to create routine. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,39 +123,113 @@ function CreateRoutine() {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
         {exercises.map((exercise, index) => (
-          <div key={index} className="space-y-2">
-            <input
-              type="text"
-              value={exercise.name}
+          <div
+            key={index}
+            className="space-y-2 p-4 border border-gray-200 rounded-md"
+          >
+            <select
+              value={exercise.type}
               onChange={(e) =>
-                handleExerciseChange(index, "name", e.target.value)
+                handleExerciseChange(index, "type", e.target.value)
               }
-              placeholder="Exercise name"
               className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-            <input
-              type="number"
-              value={exercise.sets}
-              onChange={(e) =>
-                handleExerciseChange(index, "sets", e.target.value)
-              }
-              placeholder="Sets"
-              className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-            <input
-              type="number"
-              value={exercise.reps}
-              onChange={(e) =>
-                handleExerciseChange(index, "reps", e.target.value)
-              }
-              placeholder="Reps"
-              className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+            >
+              <option value="">Select exercise type</option>
+              {exerciseTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            {errors[`type_${index}`] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors[`type_${index}`]}
+              </p>
+            )}
+            {["Strength", "Plyometric", "Bodyweight"].includes(
+              exercise.type,
+            ) && (
+              <>
+                <input
+                  type="number"
+                  value={exercise.sets}
+                  onChange={(e) =>
+                    handleExerciseChange(index, "sets", e.target.value)
+                  }
+                  placeholder="Sets"
+                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors[`sets_${index}`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors[`sets_${index}`]}
+                  </p>
+                )}
+                <input
+                  type="number"
+                  value={exercise.reps}
+                  onChange={(e) =>
+                    handleExerciseChange(index, "reps", e.target.value)
+                  }
+                  placeholder="Reps"
+                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors[`reps_${index}`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors[`reps_${index}`]}
+                  </p>
+                )}
+              </>
+            )}
+            {["Cardio", "Flexibility", "Balance"].includes(exercise.type) && (
+              <>
+                <input
+                  type="number"
+                  value={exercise.duration}
+                  onChange={(e) =>
+                    handleExerciseChange(index, "duration", e.target.value)
+                  }
+                  placeholder="Duration (minutes)"
+                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors[`duration_${index}`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors[`duration_${index}`]}
+                  </p>
+                )}
+              </>
+            )}
+            {exercise.type === "Cardio" && (
+              <>
+                <input
+                  type="number"
+                  value={exercise.distance}
+                  onChange={(e) =>
+                    handleExerciseChange(index, "distance", e.target.value)
+                  }
+                  placeholder="Distance (km)"
+                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors[`distance_${index}`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors[`distance_${index}`]}
+                  </p>
+                )}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => handleRemoveExercise(index)}
+              className="mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded text-sm"
+            >
+              Remove
+            </button>
           </div>
         ))}
         <button
@@ -97,9 +241,10 @@ function CreateRoutine() {
         </button>
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          disabled={loading}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
         >
-          Create Routine
+          {loading ? "Creating..." : "Create Routine"}
         </button>
       </form>
     </div>

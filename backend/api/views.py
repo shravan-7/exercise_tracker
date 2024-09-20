@@ -4,6 +4,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
@@ -28,10 +29,24 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
     permission_classes = [permissions.IsAuthenticated]
+import logging
 
+logger = logging.getLogger(__name__)
 class RoutineViewSet(viewsets.ModelViewSet):
     serializer_class = RoutineSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Routine.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    @action(detail=True, methods=['get'])
+    def exercises(self, request, pk=None):
+        routine = self.get_object()
+        exercises = RoutineExercise.objects.filter(routine=routine)
+        serializer = RoutineExerciseSerializer(exercises, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         return Routine.objects.filter(user=self.request.user)

@@ -15,17 +15,30 @@ class MuscleGroupSerializer(serializers.ModelSerializer):
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = '__all__'
+        fields = ['id', 'name', 'muscle_group', 'description', 'exercise_type']
 
-class RoutineSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Routine
-        fields = '__all__'
+from rest_framework import serializers
+from .models import Routine, RoutineExercise, Exercise
+
 
 class RoutineExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoutineExercise
-        fields = '__all__'
+        fields = ['exercise_type', 'sets', 'reps', 'duration', 'distance']
+
+class RoutineSerializer(serializers.ModelSerializer):
+    exercises = RoutineExerciseSerializer(many=True)
+
+    class Meta:
+        model = Routine
+        fields = ['id', 'name', 'exercises']
+
+    def create(self, validated_data):
+        exercises_data = validated_data.pop('exercises')
+        routine = Routine.objects.create(**validated_data)
+        for exercise_data in exercises_data:
+            RoutineExercise.objects.create(routine=routine, **exercise_data)
+        return routine
 
 class CompletedExerciseSerializer(serializers.ModelSerializer):
     class Meta:

@@ -8,9 +8,19 @@ class MuscleGroup(models.Model):
         return self.name
 
 class Exercise(models.Model):
+    EXERCISE_TYPES = [
+        ('Strength', 'Strength'),
+        ('Cardio', 'Cardio'),
+        ('Flexibility', 'Flexibility'),
+        ('Balance', 'Balance'),
+        ('Plyometric', 'Plyometric'),
+        ('Bodyweight', 'Bodyweight'),
+    ]
+
     name = models.CharField(max_length=100)
     muscle_group = models.ForeignKey(MuscleGroup, on_delete=models.CASCADE)
     description = models.TextField(blank=True)
+    exercise_type = models.CharField(max_length=20, choices=EXERCISE_TYPES)
 
     def __str__(self):
         return self.name
@@ -24,13 +34,24 @@ class Routine(models.Model):
         return f"{self.user.username}'s {self.name}"
 
 class RoutineExercise(models.Model):
-    routine = models.ForeignKey(Routine, on_delete=models.CASCADE)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    sets = models.IntegerField()
-    reps = models.IntegerField()
+    EXERCISE_TYPES = [
+        ('Strength', 'Strength'),
+        ('Cardio', 'Cardio'),
+        ('Flexibility', 'Flexibility'),
+        ('Balance', 'Balance'),
+        ('Plyometric', 'Plyometric'),
+        ('Bodyweight', 'Bodyweight'),
+    ]
+
+    routine = models.ForeignKey(Routine, related_name='exercises', on_delete=models.CASCADE)
+    exercise_type = models.CharField(max_length=20, choices=EXERCISE_TYPES)  # Changed from 'type' to 'exercise_type'
+    sets = models.IntegerField(null=True, blank=True)
+    reps = models.IntegerField(null=True, blank=True)
+    duration = models.IntegerField(null=True, blank=True)
+    distance = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.exercise.name} in {self.routine.name}"
+        return f"{self.exercise_type} exercise in {self.routine.name}"
 
 class CompletedExercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
