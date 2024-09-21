@@ -91,3 +91,31 @@ class ReminderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reminder
         fields = '__all__'
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'name', 'gender', 'profile_picture']
+        read_only_fields = ['id']
+    def get_profile_picture(self, obj):
+        if obj.profile_picture:
+            return self.context['request'].build_absolute_uri(obj.profile_picture.url)
+        return None
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'name', 'gender', 'profile_picture']
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.name = validated_data.get('name', instance.name)
+        instance.gender = validated_data.get('gender', instance.gender)
+        if 'profile_picture' in validated_data:
+            instance.profile_picture = validated_data['profile_picture']
+        instance.save()
+        return instance

@@ -18,38 +18,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),  # This includes the API app URLs
 ]
-
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# ]
-# from django.urls import path, include
-# from rest_framework.routers import DefaultRouter
-# from ..api.views import ReminderViewSet
-
-# from django.contrib import admin
-# from django.urls import path, include
-# from django.urls import path, include
-# from rest_framework.routers import DefaultRouter
-# from ..api.views import UserViewSet, MuscleGroupViewSet, ExerciseViewSet, RoutineViewSet, RoutineExerciseViewSet, CompletedExerciseViewSet, ReminderViewSet, login, register
-
-# router = DefaultRouter()
-# router.register(r'users', UserViewSet)
-# router.register(r'muscle-groups', MuscleGroupViewSet)
-# router.register(r'exercises', ExerciseViewSet)
-# router.register(r'routines', RoutineViewSet, basename='routine')
-# router.register(r'routine-exercises', RoutineExerciseViewSet)
-# router.register(r'completed-exercises', CompletedExerciseViewSet)
-# router.register(r'reminders', ReminderViewSet, basename='reminder')
-
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-#     path('api/', include('api.urls')),
-#     path('', include(router.urls)),
-#     path('login/', login, name='login'),
-#     path('register/', register, name='register'),
-# ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -4,13 +4,17 @@ from django.contrib.auth.hashers import make_password
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+    gender = models.CharField(max_length=10,
+    choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.password and not self.password.startswith(('pbkdf2_sha256$', 'bcrypt$', 'argon2$')):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.username
 
 class MuscleGroup(models.Model):
     name = models.CharField(max_length=50)

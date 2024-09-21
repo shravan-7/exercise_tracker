@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useHistory, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { toast } from "react-toastify";
 
 function Register() {
   const history = useHistory();
@@ -29,6 +30,17 @@ function Register() {
         formData,
       );
       login(response.data.token);
+      toast.success(
+        `Welcome, ${response.data.username}! Your account has been created.`,
+        {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        },
+      );
       history.push("/dashboard");
     } catch (error) {
       setError(

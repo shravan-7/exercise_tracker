@@ -11,7 +11,8 @@ from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWo
 from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
     RoutineSerializer, RoutineExerciseSerializer, CompletedExerciseSerializer,
-    ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer
+    ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer,UserProfileSerializer, UserProfileUpdateSerializer
+
 )
 from django.views.decorators.csrf import csrf_exempt
 
@@ -131,3 +132,19 @@ def save_completed_workout(request):
         return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    serializer = UserProfileSerializer(request.user, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    serializer = UserProfileUpdateSerializer(request.user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

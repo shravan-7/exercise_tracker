@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { AuthProvider } from "./AuthContext";
+import "react-toastify/dist/ReactToastify.css";
 
 // Import components
 import Navbar from "./components/Navbar";
@@ -16,12 +17,26 @@ import CreateRoutine from "./components/CreateRoutine";
 import Reminders from "./components/Reminders";
 import RoutineDetails from "./components/RoutineDetails";
 import EditRoutine from "./components/EditRoutine";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="App bg-gray-100 min-h-screen">
+          <ToastContainer
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
+
           <Navbar />
           <div className="container mx-auto mt-4 px-4">
             <Switch>

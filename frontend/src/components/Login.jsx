@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useHistory, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { toast } from "react-toastify";
 
 function Login() {
   const history = useHistory();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { isLoggedIn, login } = useAuth();
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      history.push("/dashboard");
-    }
-  }, [isLoggedIn, history]);
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,9 +20,21 @@ function Login() {
         password,
       });
       login(response.data.token);
+      toast.success(`Welcome back, ${response.data.username}!`, {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       history.push("/dashboard");
     } catch (error) {
-      setError("Login failed. Please check your credentials.");
+      console.error("Login error:", error.response?.data);
+      setError(
+        error.response?.data?.error ||
+          "Login failed. Please check your credentials.",
+      );
     }
   };
 
