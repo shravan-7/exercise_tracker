@@ -1,8 +1,31 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isLoggedIn, logout } = useAuth();
+  const history = useHistory();
+
+  const handleLogout = () => {
+    logout();
+    history.push("/");
+  };
+
+  const authLinks = [
+    { to: "/dashboard", text: "Dashboard" },
+    { to: "/exercises", text: "Exercises" },
+    { to: "/routine", text: "Routine" },
+    { to: "/progress", text: "Progress" },
+    { to: "/profile", text: "Profile" },
+  ];
+
+  const publicLinks = [
+    { to: "/login", text: "Login" },
+    { to: "/register", text: "Register" },
+  ];
+
+  const links = isLoggedIn ? authLinks : publicLinks;
 
   return (
     <nav className="bg-blue-600">
@@ -15,42 +38,23 @@ function Navbar() {
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <Link
-                to="/dashboard"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/exercises"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Exercises
-              </Link>
-              <Link
-                to="/routine"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Routine
-              </Link>
-              <Link
-                to="/progress"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Progress
-              </Link>
-              <Link
-                to="/profile"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Profile
-              </Link>
-              <Link
-                to="/login"
-                className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Login
-              </Link>
+              {links.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {link.text}
+                </Link>
+              ))}
+              {isLoggedIn && (
+                <button
+                  onClick={handleLogout}
+                  className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
           <div className="md:hidden">
@@ -99,42 +103,23 @@ function Navbar() {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              to="/dashboard"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/exercises"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Exercises
-            </Link>
-            <Link
-              to="/routine"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Routine
-            </Link>
-            <Link
-              to="/progress"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Progress
-            </Link>
-            <Link
-              to="/profile"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Profile
-            </Link>
-            <Link
-              to="/login"
-              className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Login
-            </Link>
+            {links.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                {link.text}
+              </Link>
+            ))}
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+              >
+                Logout
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 function Dashboard() {
   const [routines, setRoutines] = useState([]);
+  const history = useHistory();
 
   useEffect(() => {
     const fetchRoutines = async () => {
@@ -25,6 +26,10 @@ function Dashboard() {
     fetchRoutines();
   }, []);
 
+  const handleViewDetails = (routineId) => {
+    history.push(`/routine/${routineId}`);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
@@ -44,7 +49,16 @@ function Dashboard() {
                       {routine.name}
                     </h3>
                   </div>
+                  <p className="mt-1 text-gray-500 text-sm truncate">
+                    {routine.exercises.length} exercises
+                  </p>
                 </div>
+                <Link
+                  to={`/routine/${routine.id}`}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                >
+                  View Details
+                </Link>
               </div>
             </li>
           ))}
@@ -55,7 +69,7 @@ function Dashboard() {
       <div className="mt-8">
         <Link
           to="/create-routine"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
         >
           Create New Routine
         </Link>

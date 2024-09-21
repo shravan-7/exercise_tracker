@@ -3,32 +3,42 @@ import axios from "axios";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const exerciseTypes = [
-  "Strength",
-  "Cardio",
-  "Flexibility",
-  "Balance",
-  "Plyometric",
-  "Bodyweight",
-];
-
 function CreateRoutine() {
   const [name, setName] = useState("");
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [availableExercises, setAvailableExercises] = useState([]);
   const history = useHistory();
 
   useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/exercises/",
+          {
+            headers: {
+              Authorization: `Token ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        setAvailableExercises(response.data);
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+        toast.error("Failed to fetch exercises. Please try again.");
+      }
+    };
+
+    fetchExercises();
     setExercises([
-      { type: "", sets: "", reps: "", duration: "", distance: "" },
+      { exercise: "", sets: "", reps: "", duration: "", distance: "" },
     ]);
   }, []);
 
   const handleAddExercise = () => {
     setExercises([
       ...exercises,
-      { type: "", sets: "", reps: "", duration: "", distance: "" },
+      { exercise: "", sets: "", reps: "", duration: "", distance: "" },
     ]);
   };
 
@@ -48,22 +58,35 @@ function CreateRoutine() {
     if (!name.trim()) newErrors.name = "Routine name is required";
 
     exercises.forEach((exercise, index) => {
-      if (!exercise.type)
-        newErrors[`type_${index}`] = "Exercise type is required";
+      if (!exercise.exercise)
+        newErrors[`exercise_${index}`] = "Exercise is required";
 
-      if (["Strength", "Plyometric", "Bodyweight"].includes(exercise.type)) {
-        if (!exercise.sets) newErrors[`sets_${index}`] = "Sets are required";
-        if (!exercise.reps) newErrors[`reps_${index}`] = "Reps are required";
-      }
+      const selectedExercise = availableExercises.find(
+        (ex) => ex.id === parseInt(exercise.exercise),
+      );
+      if (selectedExercise) {
+        if (
+          ["Strength", "Plyometric", "Bodyweight"].includes(
+            selectedExercise.exercise_type,
+          )
+        ) {
+          if (!exercise.sets) newErrors[`sets_${index}`] = "Sets are required";
+          if (!exercise.reps) newErrors[`reps_${index}`] = "Reps are required";
+        }
 
-      if (["Cardio", "Flexibility", "Balance"].includes(exercise.type)) {
-        if (!exercise.duration)
-          newErrors[`duration_${index}`] = "Duration is required";
-      }
+        if (
+          ["Cardio", "Flexibility", "Balance"].includes(
+            selectedExercise.exercise_type,
+          )
+        ) {
+          if (!exercise.duration)
+            newErrors[`duration_${index}`] = "Duration is required";
+        }
 
-      if (exercise.type === "Cardio") {
-        if (!exercise.distance)
-          newErrors[`distance_${index}`] = "Distance is required";
+        if (selectedExercise.exercise_type === "Cardio") {
+          if (!exercise.distance)
+            newErrors[`distance_${index}`] = "Distance is required";
+        }
       }
     });
 
@@ -81,24 +104,30 @@ function CreateRoutine() {
     const routineData = {
       name,
       exercises: exercises.map((ex) => ({
-        exercise_type: ex.type, // Change this line
-        sets: ex.sets || null,
-        reps: ex.reps || null,
-        duration: ex.duration || null,
-        distance: ex.distance || null,
+        exercise: parseInt(ex.exercise),
+        sets: ex.sets ? parseInt(ex.sets) : null,
+        reps: ex.reps ? parseInt(ex.reps) : null,
+        duration: ex.duration ? parseInt(ex.duration) : null,
+        distance: ex.distance ? parseFloat(ex.distance) : null,
       })),
     };
 
     try {
-      await axios.post("http://localhost:8000/api/routines/", routineData, {
-        headers: {
-          Authorization: `Token ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
+      const response = await axios.post(
+        "http://localhost:8000/api/routines/",
+        routineData,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
+      console.log("Response:", response.data);
       toast.success("Routine created successfully!");
       history.push("/dashboard");
     } catch (error) {
+      console.error("Error:", error.response ? error.response.data : error);
       toast.error("Failed to create routine. Please try again.");
     } finally {
       setLoading(false);
@@ -135,91 +164,103 @@ function CreateRoutine() {
             className="space-y-2 p-4 border border-gray-200 rounded-md"
           >
             <select
-              value={exercise.type}
+              value={exercise.exercise}
               onChange={(e) =>
-                handleExerciseChange(index, "type", e.target.value)
+                handleExerciseChange(index, "exercise", e.target.value)
               }
               className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select exercise type</option>
-              {exerciseTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+              <option value="">Select exercise</option>
+              {availableExercises.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name} ({ex.exercise_type})
                 </option>
               ))}
             </select>
-            {errors[`type_${index}`] && (
+            {errors[`exercise_${index}`] && (
               <p className="text-red-500 text-sm mt-1">
-                {errors[`type_${index}`]}
+                {errors[`exercise_${index}`]}
               </p>
             )}
-            {["Strength", "Plyometric", "Bodyweight"].includes(
-              exercise.type,
-            ) && (
+            {exercise.exercise && (
               <>
-                <input
-                  type="number"
-                  value={exercise.sets}
-                  onChange={(e) =>
-                    handleExerciseChange(index, "sets", e.target.value)
-                  }
-                  placeholder="Sets"
-                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors[`sets_${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`sets_${index}`]}
-                  </p>
+                {["Strength", "Plyometric", "Bodyweight"].includes(
+                  availableExercises.find(
+                    (ex) => ex.id === parseInt(exercise.exercise),
+                  )?.exercise_type,
+                ) && (
+                  <>
+                    <input
+                      type="number"
+                      value={exercise.sets}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "sets", e.target.value)
+                      }
+                      placeholder="Sets"
+                      className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors[`sets_${index}`] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[`sets_${index}`]}
+                      </p>
+                    )}
+                    <input
+                      type="number"
+                      value={exercise.reps}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "reps", e.target.value)
+                      }
+                      placeholder="Reps"
+                      className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors[`reps_${index}`] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[`reps_${index}`]}
+                      </p>
+                    )}
+                  </>
                 )}
-                <input
-                  type="number"
-                  value={exercise.reps}
-                  onChange={(e) =>
-                    handleExerciseChange(index, "reps", e.target.value)
-                  }
-                  placeholder="Reps"
-                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors[`reps_${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`reps_${index}`]}
-                  </p>
+                {["Cardio", "Flexibility", "Balance"].includes(
+                  availableExercises.find(
+                    (ex) => ex.id === parseInt(exercise.exercise),
+                  )?.exercise_type,
+                ) && (
+                  <>
+                    <input
+                      type="number"
+                      value={exercise.duration}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "duration", e.target.value)
+                      }
+                      placeholder="Duration (minutes)"
+                      className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors[`duration_${index}`] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[`duration_${index}`]}
+                      </p>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-            {["Cardio", "Flexibility", "Balance"].includes(exercise.type) && (
-              <>
-                <input
-                  type="number"
-                  value={exercise.duration}
-                  onChange={(e) =>
-                    handleExerciseChange(index, "duration", e.target.value)
-                  }
-                  placeholder="Duration (minutes)"
-                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors[`duration_${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`duration_${index}`]}
-                  </p>
-                )}
-              </>
-            )}
-            {exercise.type === "Cardio" && (
-              <>
-                <input
-                  type="number"
-                  value={exercise.distance}
-                  onChange={(e) =>
-                    handleExerciseChange(index, "distance", e.target.value)
-                  }
-                  placeholder="Distance (km)"
-                  className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors[`distance_${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`distance_${index}`]}
-                  </p>
+                {availableExercises.find(
+                  (ex) => ex.id === parseInt(exercise.exercise),
+                )?.exercise_type === "Cardio" && (
+                  <>
+                    <input
+                      type="number"
+                      value={exercise.distance}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "distance", e.target.value)
+                      }
+                      placeholder="Distance (km)"
+                      className="block w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors[`distance_${index}`] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[`distance_${index}`]}
+                      </p>
+                    )}
+                  </>
                 )}
               </>
             )}

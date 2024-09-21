@@ -1,11 +1,22 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password
+
+class User(AbstractUser):
+    name = models.CharField(max_length=255)
+    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+
+    def save(self, *args, **kwargs):
+        if self.password and not self.password.startswith(('pbkdf2_sha256$', 'bcrypt$', 'argon2$')):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
 
 class MuscleGroup(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 class Exercise(models.Model):
     EXERCISE_TYPES = [
@@ -23,7 +34,9 @@ class Exercise(models.Model):
     exercise_type = models.CharField(max_length=20, choices=EXERCISE_TYPES)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
+
+
 
 class Routine(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -34,37 +47,45 @@ class Routine(models.Model):
         return f"{self.user.username}'s {self.name}"
 
 class RoutineExercise(models.Model):
-    EXERCISE_TYPES = [
-        ('Strength', 'Strength'),
-        ('Cardio', 'Cardio'),
-        ('Flexibility', 'Flexibility'),
-        ('Balance', 'Balance'),
-        ('Plyometric', 'Plyometric'),
-        ('Bodyweight', 'Bodyweight'),
-    ]
-
     routine = models.ForeignKey(Routine, related_name='exercises', on_delete=models.CASCADE)
-    exercise_type = models.CharField(max_length=20, choices=EXERCISE_TYPES)  # Changed from 'type' to 'exercise_type'
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     sets = models.IntegerField(null=True, blank=True)
     reps = models.IntegerField(null=True, blank=True)
-    duration = models.IntegerField(null=True, blank=True)
-    distance = models.FloatField(null=True, blank=True)
+    duration = models.IntegerField(null=True, blank=True)  # in minutes
+    distance = models.FloatField(null=True, blank=True)  # in km
 
     def __str__(self):
-        return f"{self.exercise_type} exercise in {self.routine.name}"
+        return f"{self.exercise.name} in {self.routine.name}"
+
+class CompletedWorkout(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    routine = models.ForeignKey(Routine, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+            return f"{self.user.username}'s {self.routine.name} on {self.started_at.strftime('%Y-%m-%d')}"
 
 class CompletedExercise(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    completed_at = models.DateTimeField(auto_now_add=True)
+    completed_workout = models.ForeignKey(CompletedWorkout, related_name='completed_exercises', on_delete=models.CASCADE)
+    routine_exercise = models.ForeignKey(RoutineExercise, on_delete=models.CASCADE)
+    sets_completed = models.IntegerField(null=True, blank=True)
+    reps_completed = models.IntegerField(null=True, blank=True)
+    duration_completed = models.IntegerField(null=True, blank=True)  # in minutes
+    distance_completed = models.FloatField(null=True, blank=True)  # in km
+    notes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.user.username} completed {self.exercise.name}"
+            return f"{self.routine_exercise.exercise.name} in {self.completed_workout}"
 
 class Reminder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    routine = models.ForeignKey(Routine, on_delete=models.CASCADE)
+    reminder_time = models.DateTimeField()
     message = models.CharField(max_length=200)
-    reminder_date = models.DateTimeField()
+    is_sent = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Reminder for {self.user.username}: {self.message}"
+        return f"Reminder for {self.user.username}: {self.routine.name}"

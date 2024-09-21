@@ -1,11 +1,34 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedExercise, Reminder
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, CompletedExercise, Reminder
+
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']
+        fields = ('id', 'username', 'email', 'password', 'confirm_password', 'name', 'gender')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def validate(self, attrs):
+        if attrs.get('password') != attrs.get('confirm_password'):
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('confirm_password', None)
+        validated_data['password'] = make_password(validated_data.get('password'))
+        return User.objects.create(**validated_data)
+
+
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data.get('password'))
+        return super(UserSerializer, self).update(instance, validated_data)
 
 class MuscleGroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,14 +40,12 @@ class ExerciseSerializer(serializers.ModelSerializer):
         model = Exercise
         fields = ['id', 'name', 'muscle_group', 'description', 'exercise_type']
 
-from rest_framework import serializers
-from .models import Routine, RoutineExercise, Exercise
-
-
 class RoutineExerciseSerializer(serializers.ModelSerializer):
+    exercise = serializers.PrimaryKeyRelatedField(queryset=Exercise.objects.all())
+
     class Meta:
         model = RoutineExercise
-        fields = ['exercise_type', 'sets', 'reps', 'duration', 'distance']
+        fields = ['id', 'exercise', 'sets', 'reps', 'duration', 'distance']
 
 class RoutineSerializer(serializers.ModelSerializer):
     exercises = RoutineExerciseSerializer(many=True)
@@ -40,10 +61,31 @@ class RoutineSerializer(serializers.ModelSerializer):
             RoutineExercise.objects.create(routine=routine, **exercise_data)
         return routine
 
+
+
+
+
+class RoutineDetailSerializer(RoutineSerializer):
+    is_owner = serializers.SerializerMethodField()
+
+    class Meta(RoutineSerializer.Meta):
+        fields = RoutineSerializer.Meta.fields + ['is_owner']
+
+    def get_is_owner(self, obj):
+        request = self.context.get('request')
+        return request and request.user == obj.user
+
 class CompletedExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompletedExercise
         fields = '__all__'
+
+class CompletedWorkoutSerializer(serializers.ModelSerializer):
+    completed_exercises = CompletedExerciseSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CompletedWorkout
+        fields = ['id', 'routine', 'started_at', 'completed_at', 'duration', 'notes', 'completed_exercises']
 
 class ReminderSerializer(serializers.ModelSerializer):
     class Meta:

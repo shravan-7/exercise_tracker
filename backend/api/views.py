@@ -4,16 +4,19 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
-from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedExercise, Reminder
+from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, CompletedExercise, Reminder
 from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
     RoutineSerializer, RoutineExerciseSerializer, CompletedExerciseSerializer,
-    ReminderSerializer
+    ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer
 )
+from django.views.decorators.csrf import csrf_exempt
+
+User = get_user_model()
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -29,104 +32,102 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
     permission_classes = [permissions.IsAuthenticated]
-import logging
 
-logger = logging.getLogger(__name__)
 class RoutineViewSet(viewsets.ModelViewSet):
     serializer_class = RoutineSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Routine.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-    @action(detail=True, methods=['get'])
-    def exercises(self, request, pk=None):
-        routine = self.get_object()
-        exercises = RoutineExercise.objects.filter(routine=routine)
-        serializer = RoutineExerciseSerializer(exercises, many=True)
-        return Response(serializer.data)
-
-    def get_queryset(self):
-        return Routine.objects.filter(user=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def today(self, request):
-        today = timezone.now().date()
-        routine = Routine.objects.filter(user=request.user).first()  # Assuming one routine per user
-        if routine:
-            exercises = RoutineExercise.objects.filter(routine=routine)
-            serializer = RoutineExerciseSerializer(exercises, many=True)
-            return Response(serializer.data)
-        return Response({'detail': 'No routine found for today'}, status=404)
-
-    @action(detail=False, methods=['get'])
-    def progress(self, request):
-        end_date = timezone.now().date()
-        start_date = end_date - timedelta(days=30)  # Get last 30 days of progress
-        progress_data = []
-        for day in range((end_date - start_date).days + 1):
-            date = start_date + timedelta(days=day)
-            completed = CompletedExercise.objects.filter(user=request.user, completed_at__date=date).count()
-            total = RoutineExercise.objects.filter(routine__user=request.user).count()
-            missed = max(0, total - completed)
-            progress_data.append({
-                'date': date.strftime('%Y-%m-%d'),
-                'completedExercises': completed,
-                'missedExercises': missed
-            })
-        return Response(progress_data)
 
 class RoutineExerciseViewSet(viewsets.ModelViewSet):
     queryset = RoutineExercise.objects.all()
     serializer_class = RoutineExerciseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+class CompletedWorkoutViewSet(viewsets.ModelViewSet):
+    serializer_class = CompletedWorkoutSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_queryset(self):
-        return RoutineExercise.objects.filter(routine__user=self.request.user)
+        return CompletedWorkout.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class CompletedExerciseViewSet(viewsets.ModelViewSet):
     queryset = CompletedExercise.objects.all()
     serializer_class = CompletedExerciseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return CompletedExercise.objects.filter(user=self.request.user)
-
 class ReminderViewSet(viewsets.ModelViewSet):
     serializer_class = ReminderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Reminder.objects.filter(user=self.request.user, is_sent=False)
+        return Reminder.objects.filter(user=self.request.user)
 
-    @action(detail=False, methods=['get'])
-    def today(self, request):
-        today = timezone.now().date()
-        reminders = Reminder.objects.filter(
-            user=request.user,
-            reminder_date__date=today,
-            is_sent=False
-        )
-        serializer = self.get_serializer(reminders, many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    logger.info(f"Received registration request: {request.data}")
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            logger.info(f"User registered successfully: {user.username}")
+            return Response({
+                'token': token.key,
+                'user_id': user.id,
+                'username': user.username
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error during user creation: {str(e)}")
+            return Response({'error': 'An error occurred during registration.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    logger.error(f"Invalid registration data: {serializer.errors}")
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
+    logger.info(f"Login attempt for username: {username}")
+    logger.info(f"Request data: {request.data}")
+
     user = authenticate(username=username, password=password)
     if user:
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key})
+        logger.info(f"Login successful for user: {username}")
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'username': user.username
+        })
+    logger.warning(f"Login failed for username: {username}")
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
-def register(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        user.set_password(request.data['password'])
-        user.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@permission_classes([IsAuthenticated])
+def save_completed_workout(request):
+    routine_id = request.data.get('routine')
+    try:
+        routine = Routine.objects.get(id=routine_id, user=request.user)
+        completed_workout = CompletedWorkout.objects.create(user=request.user, routine=routine)
+        return Response({'message': 'Workout completed successfully'}, status=status.HTTP_201_CREATED)
+    except Routine.DoesNotExist:
+        return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
