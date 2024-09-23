@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useHistory } from "react-router-dom";
+import { FaDumbbell, FaPlus, FaArrowRight } from "react-icons/fa";
 
 function Dashboard() {
   const [routines, setRoutines] = useState([]);
+  const [loading, setLoading] = useState(true);
   const history = useHistory();
 
   useEffect(() => {
@@ -18,8 +20,10 @@ function Dashboard() {
           },
         );
         setRoutines(response.data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching routines:", error);
+        setLoading(false);
       }
     };
 
@@ -30,47 +34,58 @@ function Dashboard() {
     history.push(`/routine/${routineId}`);
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
         Your Exercise Routines
       </h1>
       {routines.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {routines.map((routine) => (
-            <li
+            <div
               key={routine.id}
-              className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200"
+              className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
             >
-              <div className="w-full flex items-center justify-between p-6 space-x-6">
-                <div className="flex-1 truncate">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="text-gray-900 text-sm font-medium truncate">
-                      {routine.name}
-                    </h3>
-                  </div>
-                  <p className="mt-1 text-gray-500 text-sm truncate">
-                    {routine.exercises.length} exercises
-                  </p>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-semibold text-gray-800">
+                    {routine.name}
+                  </h3>
+                  <FaDumbbell className="text-blue-500 text-2xl" />
                 </div>
-                <Link
-                  to={`/routine/${routine.id}`}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                <p className="text-gray-600">
+                  {routine.exercises.length} exercises
+                </p>
+                <button
+                  onClick={() => handleViewDetails(routine.id)}
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center justify-center"
                 >
                   View Details
-                </Link>
+                  <FaArrowRight className="ml-2" />
+                </button>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p className="text-gray-600">You don't have any routines yet.</p>
+        <p className="text-xl text-gray-600 text-center">
+          You don't have any routines yet.
+        </p>
       )}
-      <div className="mt-8">
+      <div className="mt-12 text-center">
         <Link
           to="/create-routine"
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110"
         >
+          <FaPlus className="mr-2" />
           Create New Routine
         </Link>
       </div>

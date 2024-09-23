@@ -6,29 +6,9 @@ from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWo
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
-
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'confirm_password', 'name', 'gender')
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def validate(self, attrs):
-        if attrs.get('password') != attrs.get('confirm_password'):
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-
-    def create(self, validated_data):
-        validated_data.pop('confirm_password', None)
-        validated_data['password'] = make_password(validated_data.get('password'))
-        return User.objects.create(**validated_data)
-
-
-    def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            validated_data['password'] = make_password(validated_data.get('password'))
-        return super(UserSerializer, self).update(instance, validated_data)
+        fields = ['id', 'username', 'email', 'name', 'gender']
 
 class MuscleGroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,11 +21,12 @@ class ExerciseSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'muscle_group', 'description', 'exercise_type']
 
 class RoutineExerciseSerializer(serializers.ModelSerializer):
-    exercise = serializers.PrimaryKeyRelatedField(queryset=Exercise.objects.all())
+    exercise_name = serializers.CharField(source='exercise.name', read_only=True)
+    exercise_type = serializers.CharField(source='exercise.exercise_type', read_only=True)
 
     class Meta:
         model = RoutineExercise
-        fields = ['id', 'exercise', 'sets', 'reps', 'duration', 'distance']
+        fields = ['id', 'exercise', 'exercise_name', 'exercise_type', 'sets', 'reps', 'duration', 'distance']
 
 class RoutineSerializer(serializers.ModelSerializer):
     exercises = RoutineExerciseSerializer(many=True)
@@ -61,19 +42,44 @@ class RoutineSerializer(serializers.ModelSerializer):
             RoutineExercise.objects.create(routine=routine, **exercise_data)
         return routine
 
+    def update(self, instance, validated_data):
+        exercises_data = validated_data.pop('exercises', [])
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
 
+        # Keep track of existing exercises
+        existing_exercises = {exercise.id: exercise for exercise in instance.exercises.all()}
+
+        # Update or create exercises
+        updated_exercises = []
+        for exercise_data in exercises_data:
+            exercise_id = exercise_data.get('id')
+            if exercise_id and exercise_id in existing_exercises:
+                exercise = existing_exercises[exercise_id]
+                for attr, value in exercise_data.items():
+                    setattr(exercise, attr, value)
+                exercise.save()
+            else:
+                exercise = RoutineExercise.objects.create(routine=instance, **exercise_data)
+            updated_exercises.append(exercise)
+
+        # Delete exercises not in the update data
+        for exercise in existing_exercises.values():
+            if exercise not in updated_exercises:
+                exercise.delete()
+
+        return instance
+
+    def validate_exercises(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one exercise is required.")
+        return value
 
 
 
 class RoutineDetailSerializer(RoutineSerializer):
-    is_owner = serializers.SerializerMethodField()
-
     class Meta(RoutineSerializer.Meta):
-        fields = RoutineSerializer.Meta.fields + ['is_owner']
-
-    def get_is_owner(self, obj):
-        request = self.context.get('request')
-        return request and request.user == obj.user
+        fields = RoutineSerializer.Meta.fields + ['created_at']
 
 class CompletedExerciseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,6 +97,7 @@ class ReminderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reminder
         fields = '__all__'
+
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

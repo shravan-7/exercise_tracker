@@ -11,11 +11,11 @@ from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWo
 from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
     RoutineSerializer, RoutineExerciseSerializer, CompletedExerciseSerializer,
-    ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer,UserProfileSerializer, UserProfileUpdateSerializer
+    ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer,UserProfileSerializer, UserProfileUpdateSerializer,
+    RoutineDetailSerializer
 
 )
 from django.views.decorators.csrf import csrf_exempt
-
 User = get_user_model()
 
 
@@ -34,6 +34,15 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     serializer_class = ExerciseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def list(self, request):
+        exercises = self.get_queryset()
+        serializer = self.get_serializer(exercises, many=True)
+        return Response(serializer.data)
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 class RoutineViewSet(viewsets.ModelViewSet):
     serializer_class = RoutineSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -43,6 +52,50 @@ class RoutineViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        logger.info(f"Received data for update: {request.data}")
+
+        if not serializer.is_valid():
+            logger.error(f"Serializer errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            self.perform_update(serializer)
+        except Exception as e:
+            logger.exception(f"Error during update: {str(e)}")
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def detail(self, request, pk=None):
+        routine = self.get_object()
+        serializer = RoutineDetailSerializer(routine)
+        return Response(serializer.data)
+
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"detail": "Routine deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+
+from .models import Exercise
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_exercise_types(request):
+    exercise_types = Exercise.EXERCISE_TYPES
+    return Response(dict(exercise_types))
+
 
 class RoutineExerciseViewSet(viewsets.ModelViewSet):
     queryset = RoutineExercise.objects.all()

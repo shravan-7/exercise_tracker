@@ -43,12 +43,13 @@ class Exercise(models.Model):
 
 
 class Routine(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='routines')
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username}'s {self.name}"
+
 
 class RoutineExercise(models.Model):
     routine = models.ForeignKey(Routine, related_name='exercises', on_delete=models.CASCADE)
@@ -70,7 +71,7 @@ class CompletedWorkout(models.Model):
     notes = models.TextField(blank=True)
 
     def __str__(self):
-            return f"{self.user.username}'s {self.routine.name} on {self.started_at.strftime('%Y-%m-%d')}"
+        return f"{self.user.username}'s {self.routine.name} on {self.started_at.strftime('%Y-%m-%d')}"
 
 class CompletedExercise(models.Model):
     completed_workout = models.ForeignKey(CompletedWorkout, related_name='completed_exercises', on_delete=models.CASCADE)
@@ -82,7 +83,7 @@ class CompletedExercise(models.Model):
     notes = models.TextField(blank=True)
 
     def __str__(self):
-            return f"{self.routine_exercise.exercise.name} in {self.completed_workout}"
+        return f"{self.routine_exercise.exercise.name} in {self.completed_workout}"
 
 class Reminder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
