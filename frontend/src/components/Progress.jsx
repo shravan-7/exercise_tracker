@@ -18,7 +18,6 @@ import {
 import { FaCalendar, FaDumbbell, FaFire, FaClock } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { startOfISOWeek } from "date-fns";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
@@ -43,7 +42,7 @@ function Progress() {
   const fetchProgress = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/progress/?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`,
+        `http://localhost:8000/api/progress/?start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,

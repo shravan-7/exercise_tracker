@@ -11,9 +11,27 @@ import {
   FaRulerHorizontal,
 } from "react-icons/fa";
 
+const exerciseTypes = [
+  "Strength",
+  "Cardio",
+  "Flexibility",
+  "Balance",
+  "Plyometric",
+  "Bodyweight",
+];
+
 function CreateRoutine() {
   const [name, setName] = useState("");
-  const [exercises, setExercises] = useState([]);
+  const [exercises, setExercises] = useState([
+    {
+      exerciseType: "",
+      exercise: "",
+      sets: "",
+      reps: "",
+      duration: "",
+      distance: "",
+    },
+  ]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [availableExercises, setAvailableExercises] = useState([]);
@@ -38,15 +56,19 @@ function CreateRoutine() {
     };
 
     fetchExercises();
-    setExercises([
-      { exercise: "", sets: "", reps: "", duration: "", distance: "" },
-    ]);
   }, []);
 
   const handleAddExercise = useCallback(() => {
     setExercises((prevExercises) => [
       ...prevExercises,
-      { exercise: "", sets: "", reps: "", duration: "", distance: "" },
+      {
+        exerciseType: "",
+        exercise: "",
+        sets: "",
+        reps: "",
+        duration: "",
+        distance: "",
+      },
     ]);
   }, []);
 
@@ -60,6 +82,14 @@ function CreateRoutine() {
     setExercises((prevExercises) => {
       const newExercises = [...prevExercises];
       newExercises[index][field] = value;
+      // Reset other fields when changing exercise type
+      if (field === "exerciseType") {
+        newExercises[index].exercise = "";
+        newExercises[index].sets = "";
+        newExercises[index].reps = "";
+        newExercises[index].duration = "";
+        newExercises[index].distance = "";
+      }
       return newExercises;
     });
   }, []);
@@ -69,35 +99,28 @@ function CreateRoutine() {
     if (!name.trim()) newErrors.name = "Routine name is required";
 
     exercises.forEach((exercise, index) => {
+      if (!exercise.exerciseType)
+        newErrors[`exerciseType_${index}`] = "Exercise type is required";
       if (!exercise.exercise)
         newErrors[`exercise_${index}`] = "Exercise is required";
 
-      const selectedExercise = availableExercises.find(
-        (ex) => ex.id === parseInt(exercise.exercise),
-      );
-      if (selectedExercise) {
-        if (
-          ["Strength", "Plyometric", "Bodyweight"].includes(
-            selectedExercise.exercise_type,
-          )
-        ) {
-          if (!exercise.sets) newErrors[`sets_${index}`] = "Sets are required";
-          if (!exercise.reps) newErrors[`reps_${index}`] = "Reps are required";
-        }
+      if (
+        ["Strength", "Plyometric", "Bodyweight"].includes(exercise.exerciseType)
+      ) {
+        if (!exercise.sets) newErrors[`sets_${index}`] = "Sets are required";
+        if (!exercise.reps) newErrors[`reps_${index}`] = "Reps are required";
+      }
 
-        if (
-          ["Cardio", "Flexibility", "Balance"].includes(
-            selectedExercise.exercise_type,
-          )
-        ) {
-          if (!exercise.duration)
-            newErrors[`duration_${index}`] = "Duration is required";
-        }
+      if (
+        ["Cardio", "Flexibility", "Balance"].includes(exercise.exerciseType)
+      ) {
+        if (!exercise.duration)
+          newErrors[`duration_${index}`] = "Duration is required";
+      }
 
-        if (selectedExercise.exercise_type === "Cardio") {
-          if (!exercise.distance)
-            newErrors[`distance_${index}`] = "Distance is required";
-        }
+      if (exercise.exerciseType === "Cardio") {
+        if (!exercise.distance)
+          newErrors[`distance_${index}`] = "Distance is required";
       }
     });
 
@@ -182,18 +205,22 @@ function CreateRoutine() {
               >
                 <div className="flex flex-wrap items-center mb-4">
                   <FaDumbbell className="text-blue-500 mr-2 text-xl" />
-                  <div className="relative flex-grow">
+                  <div className="relative flex-grow mr-2">
                     <select
-                      value={exercise.exercise}
+                      value={exercise.exerciseType}
                       onChange={(e) =>
-                        handleExerciseChange(index, "exercise", e.target.value)
+                        handleExerciseChange(
+                          index,
+                          "exerciseType",
+                          e.target.value,
+                        )
                       }
                       className="w-full text-sm px-5 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 appearance-none bg-white"
                     >
-                      <option value="">Select exercise</option>
-                      {availableExercises.map((ex) => (
-                        <option key={ex.id} value={ex.id}>
-                          {ex.name} ({ex.exercise_type})
+                      <option value="">Select exercise type</option>
+                      {exerciseTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
                         </option>
                       ))}
                     </select>
@@ -207,6 +234,41 @@ function CreateRoutine() {
                       </svg>
                     </div>
                   </div>
+                  {exercise.exerciseType && (
+                    <div className="relative flex-grow">
+                      <select
+                        value={exercise.exercise}
+                        onChange={(e) =>
+                          handleExerciseChange(
+                            index,
+                            "exercise",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full text-sm px-5 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 appearance-none bg-white"
+                      >
+                        <option value="">Select exercise</option>
+                        {availableExercises
+                          .filter(
+                            (ex) => ex.exercise_type === exercise.exerciseType,
+                          )
+                          .map((ex) => (
+                            <option key={ex.id} value={ex.id}>
+                              {ex.name}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg
+                          className="fill-current h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleRemoveExercise(index)}
@@ -215,6 +277,11 @@ function CreateRoutine() {
                     <FaMinusCircle size={24} />
                   </button>
                 </div>
+                {errors[`exerciseType_${index}`] && (
+                  <p className="text-sm text-red-600 mb-2">
+                    {errors[`exerciseType_${index}`]}
+                  </p>
+                )}
                 {errors[`exercise_${index}`] && (
                   <p className="text-sm text-red-600 mb-2">
                     {errors[`exercise_${index}`]}
@@ -223,9 +290,7 @@ function CreateRoutine() {
                 {exercise.exercise && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {["Strength", "Plyometric", "Bodyweight"].includes(
-                      availableExercises.find(
-                        (ex) => ex.id === parseInt(exercise.exercise),
-                      )?.exercise_type,
+                      exercise.exerciseType,
                     ) && (
                       <>
                         <div className="relative">
@@ -273,9 +338,7 @@ function CreateRoutine() {
                       </>
                     )}
                     {["Cardio", "Flexibility", "Balance"].includes(
-                      availableExercises.find(
-                        (ex) => ex.id === parseInt(exercise.exercise),
-                      )?.exercise_type,
+                      exercise.exerciseType,
                     ) && (
                       <div className="relative">
                         <input
@@ -299,9 +362,7 @@ function CreateRoutine() {
                         )}
                       </div>
                     )}
-                    {availableExercises.find(
-                      (ex) => ex.id === parseInt(exercise.exercise),
-                    )?.exercise_type === "Cardio" && (
+                    {exercise.exerciseType === "Cardio" && (
                       <div className="relative">
                         <input
                           type="number"

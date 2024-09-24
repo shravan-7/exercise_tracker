@@ -250,32 +250,35 @@ from rest_framework.views import APIView
 from .serializers import ProgressSerializer
 
 
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
+
+from django.utils.dateparse import parse_date
+from django.db.models.functions import TruncDate, TruncWeek
+from .utils import parse_date_or_default
+
 class ProgressView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        start_date = request.query_params.get('start_date', None)
-        end_date = request.query_params.get('end_date', None)
-
-        if not start_date:
-            start_date = timezone.now() - timezone.timedelta(days=30)
-        if not end_date:
-            end_date = timezone.now()
+        start_date = parse_date_or_default(request.query_params.get('start_date'))
+        end_date = parse_date_or_default(request.query_params.get('end_date'), default_days=0)
 
         completed_workouts = CompletedWorkout.objects.filter(
             user=request.user,
-            started_at__gte=start_date,
-            started_at__lte=end_date
+            started_at__date__range=[start_date, end_date]
         ).order_by('started_at')
 
-        progress_data = []
-        for workout in completed_workouts:
-            progress_data.append({
-                'date': workout.started_at.date(),
-                'completedExercises': workout.completed_exercises.count(),
-                'totalWorkoutTime': workout.duration.total_seconds() // 60,
-                'caloriesBurned': workout.calories_burned,
-            })
+        progress_data = completed_workouts.annotate(
+            date=TruncDate('started_at')
+        ).values('date').annotate(
+            completedExercises=Count('completed_exercises'),
+            totalWorkoutTime=Sum('duration'),
+            caloriesBurned=Sum('calories_burned')
+        ).order_by('date')
+
+        for entry in progress_data:
+            entry['totalWorkoutTime'] = entry['totalWorkoutTime'].total_seconds() // 60 if entry['totalWorkoutTime'] else 0
 
         summary_data = {
             'totalWorkouts': completed_workouts.count(),
@@ -296,19 +299,18 @@ class ProgressView(APIView):
         return [{'name': item['routine__name'], 'value': item['count']} for item in distribution]
 
     def get_weekly_progress(self, completed_workouts):
-        weekly_progress = []
-        start_date = completed_workouts.first().started_at.date()
-        end_date = completed_workouts.last().started_at.date()
-        current_week = start_date - timezone.timedelta(days=start_date.weekday())
+        weekly_progress = completed_workouts.annotate(
+            week=TruncWeek('started_at')
+        ).values('week').annotate(
+            workouts=Count('id'),
+            exercises=Count('completed_exercises')
+        ).order_by('week')
 
-        while current_week <= end_date:
-            week_end = current_week + timezone.timedelta(days=6)
-            workouts_this_week = completed_workouts.filter(started_at__date__range=[current_week, week_end])
-            weekly_progress.append({
-                'week': current_week.strftime('%Y-%m-%d'),
-                'workouts': workouts_this_week.count(),
-                'exercises': CompletedExercise.objects.filter(completed_workout__in=workouts_this_week).count(),
-            })
-            current_week += timezone.timedelta(days=7)
-
-        return weekly_progress
+        return [
+            {
+                'week': item['week'].strftime('%Y-%m-%d'),
+                'workouts': item['workouts'],
+                'exercises': item['exercises']
+            }
+            for item in weekly_progress
+        ]
