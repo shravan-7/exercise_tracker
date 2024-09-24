@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom"; // Changed from useHistory
+import { useParams, useNavigate } from "react-router-dom";
 import { FaSave, FaPlus, FaTrash, FaDumbbell } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -10,7 +10,7 @@ function EditRoutine() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
-  const navigate = useNavigate(); // Changed from useHistory
+  const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
     try {
@@ -53,30 +53,46 @@ function EditRoutine() {
     setRoutine((prevRoutine) => ({ ...prevRoutine, name: e.target.value }));
   }, []);
 
-  const handleExerciseChange = useCallback((index, field, value) => {
-    setRoutine((prevRoutine) => {
-      const updatedExercises = [...prevRoutine.exercises];
-      if (field === "exercise") {
-        updatedExercises[index] = {
-          ...updatedExercises[index],
-          exercise: parseInt(value, 10),
-        };
-      } else {
-        updatedExercises[index] = {
-          ...updatedExercises[index],
-          [field]: value,
-        };
-      }
-      return { ...prevRoutine, exercises: updatedExercises };
-    });
-  }, []);
+  const handleExerciseChange = useCallback(
+    (index, field, value) => {
+      setRoutine((prevRoutine) => {
+        const updatedExercises = [...prevRoutine.exercises];
+        if (field === "exercise") {
+          const selectedExercise = allExercises.find(
+            (ex) => ex.id === parseInt(value, 10),
+          );
+          updatedExercises[index] = {
+            ...updatedExercises[index],
+            exercise: parseInt(value, 10),
+            exercise_type: selectedExercise
+              ? selectedExercise.exercise_type
+              : "",
+          };
+        } else {
+          updatedExercises[index] = {
+            ...updatedExercises[index],
+            [field]: value,
+          };
+        }
+        return { ...prevRoutine, exercises: updatedExercises };
+      });
+    },
+    [allExercises],
+  );
 
   const handleAddExercise = useCallback(() => {
     setRoutine((prevRoutine) => ({
       ...prevRoutine,
       exercises: [
         ...prevRoutine.exercises,
-        { exercise_type: "", sets: "", reps: "", duration: "", distance: "" },
+        {
+          exercise: "",
+          exercise_type: "",
+          sets: "",
+          reps: "",
+          duration: "",
+          distance: "",
+        },
       ],
     }));
   }, []);
@@ -117,7 +133,7 @@ function EditRoutine() {
         );
         console.log("Response:", response.data);
         toast.success("Routine updated successfully!");
-        navigate(`/routine/${id}`); // Changed from history.push
+        navigate(`/routine/${id}`);
       } catch (error) {
         console.error(
           "Error updating routine:",
@@ -133,12 +149,18 @@ function EditRoutine() {
     [routine, id, navigate],
   );
 
-  const shouldShowDuration = (exerciseType) => {
-    return ["Cardio", "Flexibility", "Balance"].includes(exerciseType);
-  };
-
-  const shouldShowDistance = (exerciseType) => {
-    return exerciseType === "Cardio";
+  const shouldShowField = (exerciseType, field) => {
+    switch (field) {
+      case "sets":
+      case "reps":
+        return ["Strength", "Bodyweight", "Plyometric"].includes(exerciseType);
+      case "duration":
+        return ["Cardio", "Flexibility", "Balance"].includes(exerciseType);
+      case "distance":
+        return exerciseType === "Cardio";
+      default:
+        return false;
+    }
   };
 
   if (loading) {
@@ -215,28 +237,32 @@ function EditRoutine() {
                 </select>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    value={exercise.sets}
-                    onChange={(e) =>
-                      handleExerciseChange(index, "sets", e.target.value)
-                    }
-                    placeholder="Sets"
-                    className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                  />
-                  <input
-                    type="number"
-                    value={exercise.reps}
-                    onChange={(e) =>
-                      handleExerciseChange(index, "reps", e.target.value)
-                    }
-                    placeholder="Reps"
-                    className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                  />
-                  {shouldShowDuration(exercise.exercise_type) && (
+                  {shouldShowField(exercise.exercise_type, "sets") && (
                     <input
                       type="number"
-                      value={exercise.duration}
+                      value={exercise.sets || ""}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "sets", e.target.value)
+                      }
+                      placeholder="Sets"
+                      className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                    />
+                  )}
+                  {shouldShowField(exercise.exercise_type, "reps") && (
+                    <input
+                      type="number"
+                      value={exercise.reps || ""}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "reps", e.target.value)
+                      }
+                      placeholder="Reps"
+                      className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                    />
+                  )}
+                  {shouldShowField(exercise.exercise_type, "duration") && (
+                    <input
+                      type="number"
+                      value={exercise.duration || ""}
                       onChange={(e) =>
                         handleExerciseChange(index, "duration", e.target.value)
                       }
@@ -244,10 +270,10 @@ function EditRoutine() {
                       className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                     />
                   )}
-                  {shouldShowDistance(exercise.exercise_type) && (
+                  {shouldShowField(exercise.exercise_type, "distance") && (
                     <input
                       type="number"
-                      value={exercise.distance}
+                      value={exercise.distance || ""}
                       onChange={(e) =>
                         handleExerciseChange(index, "distance", e.target.value)
                       }
