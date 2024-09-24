@@ -8,7 +8,7 @@ import {
   FaTrash,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 
 function Dashboard() {
   const [routines, setRoutines] = useState([]);
@@ -67,11 +67,11 @@ function Dashboard() {
         setRoutines((prevRoutines) =>
           prevRoutines.filter((routine) => routine.id !== routineToDelete.id),
         );
-        toast.success("Routine deleted successfully");
+        showToast("Routine deleted successfully", "success");
         closeDeleteModal();
       } catch (error) {
         console.error("Error deleting routine:", error);
-        toast.error("Failed to delete routine");
+        showToast("Failed to delete routine", "error");
       }
     }
   }, [routineToDelete, closeDeleteModal]);

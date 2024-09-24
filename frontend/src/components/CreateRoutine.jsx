@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 import {
   FaPlusCircle,
   FaMinusCircle,
@@ -51,7 +51,7 @@ function CreateRoutine() {
         setAvailableExercises(response.data);
       } catch (error) {
         console.error("Error fetching exercises:", error);
-        toast.error("Failed to fetch exercises. Please try again.");
+        showToast("Failed to fetch exercises. Please try again.", "error");
       }
     };
 
@@ -158,11 +158,11 @@ function CreateRoutine() {
         },
       );
       console.log("Response:", response.data);
-      toast.success("Routine created successfully!");
+      showToast("Routine created successfully!", "success");
       navigate("/dashboard");
     } catch (error) {
       console.error("Error:", error.response ? error.response.data : error);
-      toast.error("Failed to create routine. Please try again.");
+      showToast("Failed to create routine. Please try again.", "error");
     } finally {
       setLoading(false);
     }

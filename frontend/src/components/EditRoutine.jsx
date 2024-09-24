@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaSave, FaPlus, FaTrash, FaDumbbell } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 
 function EditRoutine() {
   const [routine, setRoutine] = useState({ name: "", exercises: [] });
@@ -132,15 +132,16 @@ function EditRoutine() {
           },
         );
         console.log("Response:", response.data);
-        toast.success("Routine updated successfully!");
+        showToast("Routine updated successfully!", "success");
         navigate(`/routine/${id}`);
       } catch (error) {
         console.error(
           "Error updating routine:",
           error.response?.data || error.message,
         );
-        toast.error(
+        showToast(
           `Failed to update routine: ${error.response?.data?.detail || "Please try again."}`,
+          "error",
         );
       } finally {
         setLoading(false);

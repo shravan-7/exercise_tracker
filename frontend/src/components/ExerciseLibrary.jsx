@@ -7,7 +7,7 @@ import {
   FaVideo,
   FaPlus,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 
 function ExerciseLibrary() {
   const [exercises, setExercises] = useState([]);
@@ -117,10 +117,10 @@ function ExerciseLibrary() {
           },
         },
       );
-      toast.success("Exercise added to workout plan");
+      showToast("Exercise added to workout plan", "success");
     } catch (error) {
       console.error("Error adding exercise to workout:", error);
-      toast.error("Failed to add exercise to workout plan");
+      showToast("Failed to add exercise to workout plan", "error");
     }
   };
 

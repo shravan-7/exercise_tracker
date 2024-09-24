@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 import { motion } from "framer-motion";
 import {
   FaUser,
@@ -44,16 +44,9 @@ function Register() {
         formData,
       );
       login(response.data.token);
-      toast.success(
+      showToast(
         `Welcome, ${response.data.username}! Your account has been created.`,
-        {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        },
+        "success",
       );
       navigate("/dashboard");
     } catch (error) {

@@ -12,7 +12,7 @@ import {
   FaStickyNote,
   FaFire,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showToast } from "./CustomToast";
 import { motion, AnimatePresence } from "framer-motion";
 
 function RoutineTracker() {
@@ -153,11 +153,11 @@ function RoutineTracker() {
           },
         },
       );
-      toast.success("Workout completed successfully!");
+      showToast("Workout completed successfully!", "success");
       navigate("/dashboard");
     } catch (error) {
       console.error("Error saving completed workout:", error);
-      toast.error("Failed to save completed workout. Please try again.");
+      showToast("Failed to save completed workout. Please try again.", "error");
     }
   };
 
