@@ -94,3 +94,18 @@ class Reminder(models.Model):
 
     def __str__(self):
         return f"Reminder for {self.user.username}: {self.routine.name}"
+
+
+class FavoriteExercise(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'exercise')
+
+class ExerciseOfTheDay(models.Model):
+    date = models.DateField(unique=True)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.date}: {self.exercise.name}"

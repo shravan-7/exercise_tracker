@@ -28,12 +28,27 @@ function Navbar() {
   const links = isLoggedIn ? authLinks : publicLinks;
 
   return (
-    <nav className="bg-blue-600">
+    <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
-            <Link to="/" className="text-white font-bold text-xl">
-              Exercise Tracker
+            <Link to="/" className="flex items-center space-x-3">
+              <svg
+                className="h-8 w-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              <span className="text-white font-bold text-xl tracking-tight">
+                Exercise Tracker
+              </span>
             </Link>
           </div>
           <div className="hidden md:block">
@@ -42,7 +57,7 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-white hover:bg-blue-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out"
                 >
                   {link.text}
                 </Link>
@@ -50,7 +65,7 @@ function Navbar() {
               {isLoggedIn && (
                 <button
                   onClick={handleLogout}
-                  className="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out"
                 >
                   Logout
                 </button>
@@ -60,7 +75,7 @@ function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-500 hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-600 focus:ring-white"
             >
               <span className="sr-only">Open main menu</span>
               {isOpen ? (
@@ -102,12 +117,12 @@ function Navbar() {
       </div>
       {isOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-500 bg-opacity-75">
             {links.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
+                className="text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-150 ease-in-out"
               >
                 {link.text}
               </Link>
@@ -115,7 +130,7 @@ function Navbar() {
             {isLoggedIn && (
               <button
                 onClick={handleLogout}
-                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                className="text-white bg-red-500 hover:bg-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left transition duration-150 ease-in-out"
               >
                 Logout
               </button>

@@ -126,3 +126,26 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             instance.profile_picture = validated_data['profile_picture']
         instance.save()
         return instance
+
+
+from .models import MuscleGroup, Exercise, FavoriteExercise, ExerciseOfTheDay
+
+class FavoriteExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FavoriteExercise
+        fields = ['exercise']
+
+
+class ExerciseOfTheDaySerializer(serializers.ModelSerializer):
+    exercise = ExerciseSerializer()
+
+    class Meta:
+        model = ExerciseOfTheDay
+        fields = ['date', 'exercise']
+
+
+class ProgressSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    completedExercises = serializers.IntegerField()
+    totalWorkoutTime = serializers.IntegerField()
+    caloriesBurned = serializers.IntegerField()
