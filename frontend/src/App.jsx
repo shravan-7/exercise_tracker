@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -18,7 +18,6 @@ import Reminders from "./components/Reminders";
 import RoutineDetails from "./components/RoutineDetails";
 import EditRoutine from "./components/EditRoutine";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -39,20 +38,20 @@ function App() {
 
           <Navbar />
           <div className="container mx-auto mt-4 px-4">
-            <Switch>
-              <Route exact path="/" component={Home} />
-              <Route path="/login" component={Login} />
-              <Route path="/register" component={Register} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/exercises" component={ExerciseLibrary} />
-              <Route path="/progress" component={Progress} />
-              <Route path="/profile" component={Profile} />
-              <Route path="/create-routine" component={CreateRoutine} />
-              <Route path="/reminders" component={Reminders} />
-              <Route path="/track-routine/:id" component={RoutineTracker} />
-              <Route exact path="/routine/:id" component={RoutineDetails} />
-              <Route exact path="/edit-routine/:id" component={EditRoutine} />
-            </Switch>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/exercises" element={<ExerciseLibrary />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/create-routine" element={<CreateRoutine />} />
+              <Route path="/reminders" element={<Reminders />} />
+              <Route path="/track-routine/:id" element={<RoutineTracker />} />
+              <Route path="/routine/:id" element={<RoutineDetails />} />
+              <Route path="/edit-routine/:id" element={<EditRoutine />} />
+            </Routes>
           </div>
         </div>
       </Router>

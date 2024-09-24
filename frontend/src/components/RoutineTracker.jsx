@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useParams, Link, useHistory } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaDumbbell, FaCheck, FaUndo } from "react-icons/fa";
 
 function RoutineTracker() {
@@ -10,49 +10,53 @@ function RoutineTracker() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchRoutine = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/routines/${id}/`,
-          {
-            headers: {
-              Authorization: `Token ${localStorage.getItem("token")}`,
-            },
+  const fetchRoutine = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/routines/${id}/`,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
           },
-        );
-        setRoutine(response.data);
-        setCompletedExercises(
-          new Array(response.data.exercises.length).fill(false),
-        );
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching routine:", error);
-        setError("Failed to load routine. Please try again.");
-        setLoading(false);
-      }
-    };
-
-    fetchRoutine();
+        },
+      );
+      setRoutine(response.data);
+      setCompletedExercises(
+        new Array(response.data.exercises.length).fill(false),
+      );
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching routine:", error);
+      setError("Failed to load routine. Please try again.");
+      setLoading(false);
+    }
   }, [id]);
 
+  useEffect(() => {
+    fetchRoutine();
+  }, [fetchRoutine]);
+
   const handleCompleteExercise = () => {
-    const newCompletedExercises = [...completedExercises];
-    newCompletedExercises[currentExerciseIndex] = true;
-    setCompletedExercises(newCompletedExercises);
+    setCompletedExercises((prev) => {
+      const newCompleted = [...prev];
+      newCompleted[currentExerciseIndex] = true;
+      return newCompleted;
+    });
     if (currentExerciseIndex < routine.exercises.length - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
+      setCurrentExerciseIndex((prev) => prev + 1);
     }
   };
 
   const handleUndoExercise = () => {
     if (currentExerciseIndex > 0) {
-      const newCompletedExercises = [...completedExercises];
-      newCompletedExercises[currentExerciseIndex - 1] = false;
-      setCompletedExercises(newCompletedExercises);
-      setCurrentExerciseIndex(currentExerciseIndex - 1);
+      setCompletedExercises((prev) => {
+        const newCompleted = [...prev];
+        newCompleted[currentExerciseIndex - 1] = false;
+        return newCompleted;
+      });
+      setCurrentExerciseIndex((prev) => prev - 1);
     }
   };
 
@@ -67,7 +71,7 @@ function RoutineTracker() {
           },
         },
       );
-      history.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error saving completed workout:", error);
       setError("Failed to save completed workout. Please try again.");

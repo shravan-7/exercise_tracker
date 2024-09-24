@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   FaSearch,
@@ -17,14 +17,7 @@ function ExerciseLibrary() {
   const [favoriteExercises, setFavoriteExercises] = useState([]);
   const [exerciseOfTheDay, setExerciseOfTheDay] = useState(null);
 
-  useEffect(() => {
-    fetchExercises();
-    fetchMuscleGroups();
-    fetchFavoriteExercises();
-    fetchExerciseOfTheDay();
-  }, []);
-
-  const fetchExercises = async () => {
+  const fetchExercises = useCallback(async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/exercises/", {
         headers: {
@@ -35,9 +28,9 @@ function ExerciseLibrary() {
     } catch (error) {
       console.error("Error fetching exercises:", error);
     }
-  };
+  }, []);
 
-  const fetchMuscleGroups = async () => {
+  const fetchMuscleGroups = useCallback(async () => {
     try {
       const response = await axios.get(
         "http://localhost:8000/api/muscle-groups/",
@@ -51,9 +44,9 @@ function ExerciseLibrary() {
     } catch (error) {
       console.error("Error fetching muscle groups:", error);
     }
-  };
+  }, []);
 
-  const fetchFavoriteExercises = async () => {
+  const fetchFavoriteExercises = useCallback(async () => {
     try {
       const response = await axios.get(
         "http://localhost:8000/api/favorite-exercises/",
@@ -67,9 +60,9 @@ function ExerciseLibrary() {
     } catch (error) {
       console.error("Error fetching favorite exercises:", error);
     }
-  };
+  }, []);
 
-  const fetchExerciseOfTheDay = async () => {
+  const fetchExerciseOfTheDay = useCallback(async () => {
     try {
       const response = await axios.get(
         "http://localhost:8000/api/exercise-of-the-day/",
@@ -83,7 +76,19 @@ function ExerciseLibrary() {
     } catch (error) {
       console.error("Error fetching exercise of the day:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchExercises();
+    fetchMuscleGroups();
+    fetchFavoriteExercises();
+    fetchExerciseOfTheDay();
+  }, [
+    fetchExercises,
+    fetchMuscleGroups,
+    fetchFavoriteExercises,
+    fetchExerciseOfTheDay,
+  ]);
 
   const toggleFavorite = async (exerciseId) => {
     try {

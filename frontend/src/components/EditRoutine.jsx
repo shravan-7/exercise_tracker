@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Changed from useHistory
 import { FaSave, FaPlus, FaTrash, FaDumbbell } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -10,118 +10,128 @@ function EditRoutine() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
-  const history = useHistory();
+  const navigate = useNavigate(); // Changed from useHistory
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [routineResponse, exercisesResponse] = await Promise.all([
-          axios.get(`http://localhost:8000/api/routines/${id}/`, {
-            headers: {
-              Authorization: `Token ${localStorage.getItem("token")}`,
-            },
-          }),
-          axios.get("http://localhost:8000/api/exercises/", {
-            headers: {
-              Authorization: `Token ${localStorage.getItem("token")}`,
-            },
-          }),
-        ]);
-
-        const formattedRoutine = {
-          ...routineResponse.data,
-          exercises: routineResponse.data.exercises.map((ex) => ({
-            ...ex,
-            exercise: ex.exercise,
-          })),
-        };
-
-        setRoutine(formattedRoutine);
-        setAllExercises(exercisesResponse.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load data. Please try again.");
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
-  const handleNameChange = (e) => {
-    setRoutine({ ...routine, name: e.target.value });
-  };
-
-  const handleExerciseChange = (index, field, value) => {
-    const updatedExercises = [...routine.exercises];
-    if (field === "exercise") {
-      updatedExercises[index] = {
-        ...updatedExercises[index],
-        exercise: parseInt(value, 10),
-      };
-    } else {
-      updatedExercises[index] = { ...updatedExercises[index], [field]: value };
-    }
-    setRoutine({ ...routine, exercises: updatedExercises });
-  };
-
-  const handleAddExercise = () => {
-    setRoutine({
-      ...routine,
-      exercises: [
-        ...routine.exercises,
-        { exercise_type: "", sets: "", reps: "", duration: "", distance: "" },
-      ],
-    });
-  };
-
-  const handleRemoveExercise = (index) => {
-    const updatedExercises = routine.exercises.filter((_, i) => i !== index);
-    setRoutine({ ...routine, exercises: updatedExercises });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
-      const updatedRoutine = {
-        ...routine,
-        exercises: routine.exercises.map((exercise) => ({
-          ...(exercise.id && { id: exercise.id }),
-          exercise: exercise.exercise,
-          sets: exercise.sets || null,
-          reps: exercise.reps || null,
-          duration: exercise.duration || null,
-          distance: exercise.distance || null,
-        })),
-      };
-      console.log("Sending data:", JSON.stringify(updatedRoutine, null, 2));
-      const response = await axios.put(
-        `http://localhost:8000/api/routines/${id}/`,
-        updatedRoutine,
-        {
+      const [routineResponse, exercisesResponse] = await Promise.all([
+        axios.get(`http://localhost:8000/api/routines/${id}/`, {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
           },
-        },
-      );
-      console.log("Response:", response.data);
-      toast.success("Routine updated successfully!");
-      history.push(`/routine/${id}`);
+        }),
+        axios.get("http://localhost:8000/api/exercises/", {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
+          },
+        }),
+      ]);
+
+      const formattedRoutine = {
+        ...routineResponse.data,
+        exercises: routineResponse.data.exercises.map((ex) => ({
+          ...ex,
+          exercise: ex.exercise,
+        })),
+      };
+
+      setRoutine(formattedRoutine);
+      setAllExercises(exercisesResponse.data);
+      setLoading(false);
     } catch (error) {
-      console.error(
-        "Error updating routine:",
-        error.response?.data || error.message,
-      );
-      toast.error(
-        `Failed to update routine: ${error.response?.data?.detail || "Please try again."}`,
-      );
-    } finally {
+      console.error("Error fetching data:", error);
+      setError("Failed to load data. Please try again.");
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleNameChange = useCallback((e) => {
+    setRoutine((prevRoutine) => ({ ...prevRoutine, name: e.target.value }));
+  }, []);
+
+  const handleExerciseChange = useCallback((index, field, value) => {
+    setRoutine((prevRoutine) => {
+      const updatedExercises = [...prevRoutine.exercises];
+      if (field === "exercise") {
+        updatedExercises[index] = {
+          ...updatedExercises[index],
+          exercise: parseInt(value, 10),
+        };
+      } else {
+        updatedExercises[index] = {
+          ...updatedExercises[index],
+          [field]: value,
+        };
+      }
+      return { ...prevRoutine, exercises: updatedExercises };
+    });
+  }, []);
+
+  const handleAddExercise = useCallback(() => {
+    setRoutine((prevRoutine) => ({
+      ...prevRoutine,
+      exercises: [
+        ...prevRoutine.exercises,
+        { exercise_type: "", sets: "", reps: "", duration: "", distance: "" },
+      ],
+    }));
+  }, []);
+
+  const handleRemoveExercise = useCallback((index) => {
+    setRoutine((prevRoutine) => ({
+      ...prevRoutine,
+      exercises: prevRoutine.exercises.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        const updatedRoutine = {
+          ...routine,
+          exercises: routine.exercises.map((exercise) => ({
+            ...(exercise.id && { id: exercise.id }),
+            exercise: exercise.exercise,
+            sets: exercise.sets || null,
+            reps: exercise.reps || null,
+            duration: exercise.duration || null,
+            distance: exercise.distance || null,
+          })),
+        };
+        console.log("Sending data:", JSON.stringify(updatedRoutine, null, 2));
+        const response = await axios.put(
+          `http://localhost:8000/api/routines/${id}/`,
+          updatedRoutine,
+          {
+            headers: {
+              Authorization: `Token ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        console.log("Response:", response.data);
+        toast.success("Routine updated successfully!");
+        navigate(`/routine/${id}`); // Changed from history.push
+      } catch (error) {
+        console.error(
+          "Error updating routine:",
+          error.response?.data || error.message,
+        );
+        toast.error(
+          `Failed to update routine: ${error.response?.data?.detail || "Please try again."}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [routine, id, navigate],
+  );
 
   const shouldShowDuration = (exerciseType) => {
     return ["Cardio", "Flexibility", "Balance"].includes(exerciseType);

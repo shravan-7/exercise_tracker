@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useHistory, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { toast } from "react-toastify";
 
 function Register() {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -18,7 +18,10 @@ function Register() {
   const { login } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -41,7 +44,7 @@ function Register() {
           draggable: true,
         },
       );
-      history.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       setError(
         error.response?.data?.error || "Registration failed. Please try again.",

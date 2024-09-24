@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import React, { useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isLoggedIn, logout } = useAuth();
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
-    history.push("/");
-  };
+    navigate("/");
+  }, [logout, navigate]);
 
   const authLinks = [
     { to: "/dashboard", text: "Dashboard" },

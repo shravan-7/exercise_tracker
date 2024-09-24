@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useHistory, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { toast } from "react-toastify";
 
 function Login() {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ function Login() {
         pauseOnHover: true,
         draggable: true,
       });
-      history.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error.response?.data);
       setError(

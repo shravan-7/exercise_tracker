@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 
@@ -16,11 +16,7 @@ function Profile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await axios.get(
         "http://localhost:8000/api/user-profile/",
@@ -40,49 +36,59 @@ function Profile() {
       console.error("Error fetching user data:", error);
       setError("Failed to load user data. Please try again.");
     }
-  };
+  }, [token]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
-  const handleFileChange = (e) => {
+  const handleChange = useCallback((e) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
+  }, []);
+
+  const handleFileChange = useCallback((e) => {
     const file = e.target.files[0];
     setProfilePicture(file);
     setPreviewUrl(URL.createObjectURL(file));
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setError("");
+      setSuccess("");
 
-    const updatedData = new FormData();
-    for (const key in formData) {
-      updatedData.append(key, formData[key]);
-    }
-    if (profilePicture) {
-      updatedData.append("profile_picture", profilePicture);
-    }
+      const updatedData = new FormData();
+      for (const key in formData) {
+        updatedData.append(key, formData[key]);
+      }
+      if (profilePicture) {
+        updatedData.append("profile_picture", profilePicture);
+      }
 
-    try {
-      await axios.put(
-        "http://localhost:8000/api/update-profile/",
-        updatedData,
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "multipart/form-data",
+      try {
+        await axios.put(
+          "http://localhost:8000/api/update-profile/",
+          updatedData,
+          {
+            headers: {
+              Authorization: `Token ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           },
-        },
-      );
-      setSuccess("Profile updated successfully!");
-      fetchUserData();
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      setError("Failed to update profile. Please try again.");
-    }
-  };
+        );
+        setSuccess("Profile updated successfully!");
+        fetchUserData();
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        setError("Failed to update profile. Please try again.");
+      }
+    },
+    [formData, profilePicture, token, fetchUserData],
+  );
 
   if (!user) {
     return (

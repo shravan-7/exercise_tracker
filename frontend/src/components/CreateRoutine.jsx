@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   FaPlusCircle,
@@ -17,7 +17,7 @@ function CreateRoutine() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [availableExercises, setAvailableExercises] = useState([]);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -43,23 +43,26 @@ function CreateRoutine() {
     ]);
   }, []);
 
-  const handleAddExercise = () => {
-    setExercises([
-      ...exercises,
+  const handleAddExercise = useCallback(() => {
+    setExercises((prevExercises) => [
+      ...prevExercises,
       { exercise: "", sets: "", reps: "", duration: "", distance: "" },
     ]);
-  };
+  }, []);
 
-  const handleRemoveExercise = (index) => {
-    const newExercises = exercises.filter((_, i) => i !== index);
-    setExercises(newExercises);
-  };
+  const handleRemoveExercise = useCallback((index) => {
+    setExercises((prevExercises) =>
+      prevExercises.filter((_, i) => i !== index),
+    );
+  }, []);
 
-  const handleExerciseChange = (index, field, value) => {
-    const newExercises = [...exercises];
-    newExercises[index][field] = value;
-    setExercises(newExercises);
-  };
+  const handleExerciseChange = useCallback((index, field, value) => {
+    setExercises((prevExercises) => {
+      const newExercises = [...prevExercises];
+      newExercises[index][field] = value;
+      return newExercises;
+    });
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -133,7 +136,7 @@ function CreateRoutine() {
       );
       console.log("Response:", response.data);
       toast.success("Routine created successfully!");
-      history.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error:", error.response ? error.response.data : error);
       toast.error("Failed to create routine. Please try again.");

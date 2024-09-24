@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Changed from useHistory
 import {
   FaDumbbell,
   FaPlus,
@@ -15,13 +15,9 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [routineToDelete, setRoutineToDelete] = useState(null);
-  const history = useHistory();
+  const navigate = useNavigate(); // Changed from useHistory
 
-  useEffect(() => {
-    fetchRoutines();
-  }, []);
-
-  const fetchRoutines = async () => {
+  const fetchRoutines = useCallback(async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/routines/", {
         headers: {
@@ -34,23 +30,30 @@ function Dashboard() {
       console.error("Error fetching routines:", error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleViewDetails = (routineId) => {
-    history.push(`/routine/${routineId}`);
-  };
+  useEffect(() => {
+    fetchRoutines();
+  }, [fetchRoutines]);
 
-  const openDeleteModal = (routine) => {
+  const handleViewDetails = useCallback(
+    (routineId) => {
+      navigate(`/routine/${routineId}`); // Changed from history.push
+    },
+    [navigate],
+  );
+
+  const openDeleteModal = useCallback((routine) => {
     setRoutineToDelete(routine);
     setShowDeleteModal(true);
-  };
+  }, []);
 
-  const closeDeleteModal = () => {
+  const closeDeleteModal = useCallback(() => {
     setShowDeleteModal(false);
     setRoutineToDelete(null);
-  };
+  }, []);
 
-  const handleDeleteRoutine = async () => {
+  const handleDeleteRoutine = useCallback(async () => {
     if (routineToDelete) {
       try {
         await axios.delete(
@@ -61,8 +64,8 @@ function Dashboard() {
             },
           },
         );
-        setRoutines(
-          routines.filter((routine) => routine.id !== routineToDelete.id),
+        setRoutines((prevRoutines) =>
+          prevRoutines.filter((routine) => routine.id !== routineToDelete.id),
         );
         toast.success("Routine deleted successfully");
         closeDeleteModal();
@@ -71,7 +74,7 @@ function Dashboard() {
         toast.error("Failed to delete routine");
       }
     }
-  };
+  }, [routineToDelete, closeDeleteModal]);
 
   if (loading) {
     return (

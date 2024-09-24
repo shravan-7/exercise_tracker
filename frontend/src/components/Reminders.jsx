@@ -1,29 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 function Reminders() {
   const [reminders, setReminders] = useState([]);
   const [newReminder, setNewReminder] = useState({ text: "", time: "" });
 
-  useEffect(() => {
-    const fetchReminders = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/api/reminders/",
-          {
-            headers: {
-              Authorization: `Token ${localStorage.getItem("token")}`,
-            },
-          },
-        );
-        setReminders(response.data);
-      } catch (error) {
-        console.error("Error fetching reminders:", error);
-      }
-    };
-
-    fetchReminders();
+  const fetchReminders = useCallback(async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/reminders/", {
+        headers: {
+          Authorization: `Token ${localStorage.getItem("token")}`,
+        },
+      });
+      setReminders(response.data);
+    } catch (error) {
+      console.error("Error fetching reminders:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
 
   const handleAddReminder = async (e) => {
     e.preventDefault();
@@ -35,7 +32,7 @@ function Reminders() {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },
         },
       );
-      setReminders([...reminders, response.data]);
+      setReminders((prev) => [...prev, response.data]);
       setNewReminder({ text: "", time: "" });
     } catch (error) {
       console.error("Error adding reminder:", error);

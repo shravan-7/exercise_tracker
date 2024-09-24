@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useParams, Link, useHistory } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   FaEdit,
   FaArrowLeft,
@@ -18,37 +18,37 @@ function RoutineDetails() {
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { id } = useParams();
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchRoutineDetails = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/api/routines/${id}/`,
-          {
-            headers: {
-              Authorization: `Token ${localStorage.getItem("token")}`,
-            },
+  const fetchRoutineDetails = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/routines/${id}/`,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
           },
-        );
-        setRoutine(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching routine details:", error);
-        setError("Failed to load routine details. Please try again.");
-        setLoading(false);
-      }
-    };
-
-    fetchRoutineDetails();
+        },
+      );
+      setRoutine(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching routine details:", error);
+      setError("Failed to load routine details. Please try again.");
+      setLoading(false);
+    }
   }, [id]);
 
+  useEffect(() => {
+    fetchRoutineDetails();
+  }, [fetchRoutineDetails]);
+
   const handleEdit = () => {
-    history.push(`/edit-routine/${id}`);
+    navigate(`/edit-routine/${id}`);
   };
 
   const handleStartWorkout = () => {
-    history.push(`/track-routine/${id}`);
+    navigate(`/track-routine/${id}`);
   };
 
   const handleDelete = async () => {
@@ -58,7 +58,7 @@ function RoutineDetails() {
           Authorization: `Token ${localStorage.getItem("token")}`,
         },
       });
-      history.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error deleting routine:", error);
       setError("Failed to delete routine. Please try again.");

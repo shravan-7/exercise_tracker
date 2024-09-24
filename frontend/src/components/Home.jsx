@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../Home.css";
 
 function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
