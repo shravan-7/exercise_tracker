@@ -15,7 +15,7 @@ function Navbar() {
   const authLinks = [
     { to: "/dashboard", text: "Dashboard" },
     { to: "/exercises", text: "Exercises" },
-    { to: "/routine", text: "Routine" },
+    // { to: "/routine", text: "Routine" },
     { to: "/progress", text: "Progress" },
     { to: "/profile", text: "Profile" },
   ];

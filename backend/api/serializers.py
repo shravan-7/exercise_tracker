@@ -87,11 +87,15 @@ class CompletedExerciseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CompletedWorkoutSerializer(serializers.ModelSerializer):
-    completed_exercises = CompletedExerciseSerializer(many=True, read_only=True)
-
     class Meta:
         model = CompletedWorkout
-        fields = ['id', 'routine', 'started_at', 'completed_at', 'duration', 'notes', 'completed_exercises']
+        fields = ['id', 'routine', 'started_at', 'completed_at', 'duration', 'calories_burned', 'notes']
+        read_only_fields = ['id', 'started_at', 'completed_at']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return super().create(validated_data)
 
 class ReminderSerializer(serializers.ModelSerializer):
     class Meta:

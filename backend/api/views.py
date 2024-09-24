@@ -3,7 +3,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta,datetime
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
@@ -149,7 +149,10 @@ class CompletedWorkoutViewSet(viewsets.ModelViewSet):
         return CompletedWorkout.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        started_at = self.request.data.get('started_at', timezone.now())
+        completed_at = timezone.now()
+        duration = completed_at - datetime.fromisoformat(started_at)
+        serializer.save(user=self.request.user, started_at=started_at, completed_at=completed_at, duration=duration)
 
 class CompletedExerciseViewSet(viewsets.ModelViewSet):
     queryset = CompletedExercise.objects.all()

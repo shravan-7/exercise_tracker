@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
@@ -66,8 +67,9 @@ class CompletedWorkout(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     routine = models.ForeignKey(Routine, on_delete=models.CASCADE)
     started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(default=timezone.now)  # Add default here
     duration = models.DurationField(null=True, blank=True)
+    calories_burned = models.IntegerField(default=0)
     notes = models.TextField(blank=True)
 
     def __str__(self):
