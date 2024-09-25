@@ -1,15 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  FaChartLine,
+  FaDumbbell,
+  FaTrophy,
+  FaCalendarAlt,
+  FaUsers,
+  FaBolt,
+} from "react-icons/fa";
+import axios from "axios";
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [exerciseOfTheDay, setExerciseOfTheDay] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      fetchExerciseOfTheDay();
+    }
   }, []);
+
+  const fetchExerciseOfTheDay = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/exercise-of-the-day/today/",
+        {
+          headers: { Authorization: `Token ${localStorage.getItem("token")}` },
+        },
+      );
+      setExerciseOfTheDay(response.data);
+    } catch (error) {
+      console.error("Error fetching exercise of the day:", error);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -30,9 +58,52 @@ function Home() {
     },
   };
 
+  const features = [
+    {
+      icon: <FaChartLine className="text-4xl text-blue-400" />,
+      title: "Track Progress",
+      description:
+        "Monitor your fitness journey with detailed analytics and insights",
+      link: "/progress",
+    },
+    {
+      icon: <FaDumbbell className="text-4xl text-green-400" />,
+      title: "Custom Workouts",
+      description:
+        "Create and manage personalized routines tailored to your goals",
+      link: "/routines",
+    },
+    {
+      icon: <FaTrophy className="text-4xl text-yellow-400" />,
+      title: "Set Goals",
+      description:
+        "Define and achieve your fitness milestones with smart goal tracking",
+      link: "/goals",
+    },
+    {
+      icon: <FaCalendarAlt className="text-4xl text-red-400" />,
+      title: "Schedule Workouts",
+      description: "Plan your exercise routine with an interactive calendar",
+      link: "/schedule",
+    },
+    {
+      icon: <FaUsers className="text-4xl text-purple-400" />,
+      title: "Community Challenges",
+      description: "Join fitness challenges and compete with friends",
+      link: "/challenges",
+    },
+    {
+      icon: <FaBolt className="text-4xl text-orange-400" />,
+      title: "Quick Workouts",
+      description:
+        "Access a library of quick, effective workouts for busy days",
+      link: "/quick-workouts",
+    },
+  ];
+
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8"
+      className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -84,30 +155,35 @@ function Home() {
           )}
         </motion.div>
       </motion.div>
+
+      {isLoggedIn && exerciseOfTheDay && (
+        <motion.div
+          className="mt-12 bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl max-w-md w-full"
+          variants={itemVariants}
+        >
+          <h3 className="text-2xl font-semibold text-white mb-4">
+            Exercise of the Day
+          </h3>
+          {exerciseOfTheDay.exercise ? (
+            <>
+              <p className="text-blue-200 mb-2">
+                {exerciseOfTheDay.exercise.name}
+              </p>
+              <p className="text-sm text-blue-300">
+                {exerciseOfTheDay.exercise.description}
+              </p>
+            </>
+          ) : (
+            <p className="text-blue-200">No exercise available for today.</p>
+          )}
+        </motion.div>
+      )}
+
       <motion.div
         className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full"
         variants={containerVariants}
       >
-        {[
-          {
-            icon: "📊",
-            title: "Track Progress",
-            description: "Monitor your fitness journey with detailed analytics",
-            link: "/progress",
-          },
-          {
-            icon: "🏋️‍♂️",
-            title: "Custom Workouts",
-            description: "Create personalized routines tailored to your goals",
-            link: "/create-routine",
-          },
-          {
-            icon: "🏆",
-            title: "Set Goals",
-            description: "Define and achieve your fitness milestones",
-            link: "/goals",
-          },
-        ].map((feature, index) => (
+        {features.map((feature, index) => (
           <motion.div
             key={index}
             className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl cursor-pointer"
@@ -117,7 +193,7 @@ function Home() {
             onClick={() => navigate(feature.link)}
           >
             <motion.div
-              className="text-4xl mb-4"
+              className="mb-4"
               animate={{ rotate: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -130,6 +206,37 @@ function Home() {
           </motion.div>
         ))}
       </motion.div>
+
+      <motion.div className="mt-16 text-center" variants={itemVariants}>
+        <h2 className="text-3xl font-bold text-white mb-4">
+          Why Choose Exercise Tracker?
+        </h2>
+        <p className="text-xl text-blue-200 max-w-2xl mx-auto">
+          Exercise Tracker is more than just a routine tracker. It's your
+          personal fitness companion, designed to help you achieve your goals,
+          stay motivated, and make your fitness journey enjoyable and rewarding.
+        </p>
+      </motion.div>
+
+        {/* <motion.div
+          className="mt-12 flex flex-wrap justify-center gap-8"
+          variants={containerVariants}
+        >
+          {[
+            { number: "1M+", label: "Active Users" },
+            { number: "10K+", label: "Workouts Completed" },
+            { number: "95%", label: "User Satisfaction" },
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              className="text-center"
+              variants={itemVariants}
+            >
+              <p className="text-4xl font-bold text-white">{stat.number}</p>
+              <p className="text-blue-200">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div> */}
     </motion.div>
   );
 }

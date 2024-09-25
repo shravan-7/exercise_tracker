@@ -8,16 +8,26 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
 from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, FavoriteExercise, ExerciseOfTheDay,CompletedExercise, Reminder
+from django.views.decorators.csrf import csrf_exempt
+import logging
+from rest_framework.views import APIView
+from django.db.models import Sum, Count
+from django.utils.dateparse import parse_date
+from django.db.models.functions import TruncDate, TruncWeek
+from .utils import parse_date_or_default
+from random import choice
+
 from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
     RoutineSerializer, RoutineExerciseSerializer, CompletedExerciseSerializer,
     ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer,UserProfileSerializer, UserProfileUpdateSerializer,
-    RoutineDetailSerializer,FavoriteExerciseSerializer, ExerciseOfTheDaySerializer
-
+    RoutineDetailSerializer,FavoriteExerciseSerializer, ExerciseOfTheDaySerializer,ProgressSerializer
 
 )
-from django.views.decorators.csrf import csrf_exempt
+
+
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -71,16 +81,12 @@ class ExerciseOfTheDayViewSet(viewsets.ReadOnlyModelViewSet):
             exercise_of_the_day = ExerciseOfTheDay.objects.get(date=today)
         except ExerciseOfTheDay.DoesNotExist:
             # If there's no exercise for today, create one randomly
-            random_exercise = Exercise.objects.order_by('?').first()
+            random_exercise = choice(Exercise.objects.all())
             exercise_of_the_day = ExerciseOfTheDay.objects.create(date=today, exercise=random_exercise)
 
         serializer = self.get_serializer(exercise_of_the_day)
         return Response(serializer.data)
 
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 class RoutineViewSet(viewsets.ModelViewSet):
     serializer_class = RoutineSerializer
@@ -127,8 +133,6 @@ class RoutineViewSet(viewsets.ModelViewSet):
         return Response({"detail": "Routine deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 
-from .models import Exercise
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_exercise_types(request):
@@ -168,9 +172,6 @@ class ReminderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -244,18 +245,6 @@ def update_profile(request):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-from rest_framework.views import APIView
-from .serializers import ProgressSerializer
-
-
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncDate
-
-from django.utils.dateparse import parse_date
-from django.db.models.functions import TruncDate, TruncWeek
-from .utils import parse_date_or_default
 
 class ProgressView(APIView):
     permission_classes = [IsAuthenticated]

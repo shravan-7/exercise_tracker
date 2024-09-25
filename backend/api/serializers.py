@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, CompletedExercise, Reminder
+from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, CompletedExercise, Reminder,FavoriteExercise, ExerciseOfTheDay
 
 User = get_user_model()
 
@@ -131,8 +131,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-from .models import MuscleGroup, Exercise, FavoriteExercise, ExerciseOfTheDay
 
 class FavoriteExerciseSerializer(serializers.ModelSerializer):
     class Meta:
