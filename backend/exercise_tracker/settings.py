@@ -45,6 +45,8 @@ AUTH_USER_MODEL = 'api.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+LOGIN_URL = 'http://localhost:8000/api/login/'
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

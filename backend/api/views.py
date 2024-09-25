@@ -16,6 +16,7 @@ from django.utils.dateparse import parse_date
 from django.db.models.functions import TruncDate, TruncWeek
 from .utils import parse_date_or_default
 from random import choice
+from django.contrib.auth.decorators import login_required
 
 from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
@@ -39,6 +40,7 @@ class MuscleGroupViewSet(viewsets.ModelViewSet):
     queryset = MuscleGroup.objects.all()
     serializer_class = MuscleGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
+
 
 class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
@@ -70,9 +72,12 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         favorite_exercises = FavoriteExercise.objects.filter(user=request.user).values_list('exercise', flat=True)
         return Response(favorite_exercises)
 
+
 class ExerciseOfTheDayViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ExerciseOfTheDay.objects.all()
     serializer_class = ExerciseOfTheDaySerializer
+    permission_classes = [IsAuthenticated]
+
 
     @action(detail=False, methods=['GET'])
     def today(self, request):
@@ -228,6 +233,8 @@ def save_completed_workout(request):
         return Response({'error': 'Routine not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
