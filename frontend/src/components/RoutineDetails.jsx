@@ -11,6 +11,7 @@ import {
   FaPlay,
   FaTrashAlt,
 } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 function RoutineDetails() {
   const [routine, setRoutine] = useState(null);
@@ -67,8 +68,8 @@ function RoutineDetails() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-blue-500"></div>
       </div>
     );
   if (error)
@@ -85,97 +86,120 @@ function RoutineDetails() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white shadow-2xl rounded-lg overflow-hidden transform transition-all hover:scale-105">
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4">
-          <h1 className="text-3xl font-bold">{routine.name}</h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-100 min-h-screen"
+    >
+      <div className="bg-white shadow-2xl rounded-3xl overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-8 py-6">
+          <h1 className="text-4xl font-bold">{routine.name}</h1>
         </div>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Exercises</h2>
-            <button
-              onClick={handleStartWorkout}
-              className=" mb-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110 flex items-center"
-            >
-              <FaPlay className="mr-2" />
-              Start Workout
-            </button>
-            <div className="space-x-4">
-              <button
+        <div className="p-8">
+          <div className="flex flex-wrap justify-between items-center mb-8">
+            <h2 className="text-3xl font-semibold text-gray-800 mb-4 sm:mb-0">
+              Exercises
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleStartWorkout}
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out flex items-center shadow-lg"
+              >
+                <FaPlay className="mr-2" />
+                Start Workout
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleEdit}
-                className="ml-6 mb-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110 flex items-center"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out flex items-center shadow-lg"
               >
                 <FaEdit className="mr-2" />
                 Edit Routine
-              </button>
-
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setShowDeleteModal(true)}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110 flex items-center"
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out flex items-center shadow-lg"
               >
                 <FaTrashAlt className="mr-2" />
                 Delete Routine
-              </button>
+              </motion.button>
             </div>
           </div>
           {routine.exercises && routine.exercises.length > 0 ? (
-            <ul className="space-y-6">
+            <motion.ul
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ staggerChildren: 0.1 }}
+              className="space-y-6"
+            >
               {routine.exercises.map((exercise, index) => (
-                <li
+                <motion.li
                   key={index}
-                  className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-gray-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
                 >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2 flex items-center">
                     <FaDumbbell className="mr-3 text-indigo-600" />
-                    {exercise.exercise_type}
+                    {exercise.exercise_name}
                   </h3>
-                  <div className="grid grid-cols-2 gap-6 text-sm text-gray-600">
+                  <p className="text-lg text-gray-600 mb-4">
+                    Type: {exercise.exercise_type}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-600">
                     {exercise.sets && (
-                      <div className="flex items-center bg-white p-3 rounded-lg shadow">
-                        <FaDumbbell className="mr-2 text-blue-500" />
-                        <span className="font-medium">
+                      <div className="flex items-center bg-white p-4 rounded-xl shadow">
+                        <FaDumbbell className="mr-3 text-blue-500 text-xl" />
+                        <span className="font-medium text-lg">
                           Sets: {exercise.sets}
                         </span>
                       </div>
                     )}
                     {exercise.reps && (
-                      <div className="flex items-center bg-white p-3 rounded-lg shadow">
-                        <FaRunning className="mr-2 text-green-500" />
-                        <span className="font-medium">
+                      <div className="flex items-center bg-white p-4 rounded-xl shadow">
+                        <FaRunning className="mr-3 text-green-500 text-xl" />
+                        <span className="font-medium text-lg">
                           Reps: {exercise.reps}
                         </span>
                       </div>
                     )}
                     {exercise.duration && (
-                      <div className="flex items-center bg-white p-3 rounded-lg shadow">
-                        <FaStopwatch className="mr-2 text-yellow-500" />
-                        <span className="font-medium">
+                      <div className="flex items-center bg-white p-4 rounded-xl shadow">
+                        <FaStopwatch className="mr-3 text-yellow-500 text-xl" />
+                        <span className="font-medium text-lg">
                           Duration: {exercise.duration} minutes
                         </span>
                       </div>
                     )}
                     {exercise.distance && (
-                      <div className="flex items-center bg-white p-3 rounded-lg shadow">
-                        <FaRulerHorizontal className="mr-2 text-purple-500" />
-                        <span className="font-medium">
+                      <div className="flex items-center bg-white p-4 rounded-xl shadow">
+                        <FaRulerHorizontal className="mr-3 text-purple-500 text-xl" />
+                        <span className="font-medium text-lg">
                           Distance: {exercise.distance} km
                         </span>
                       </div>
                     )}
                   </div>
-                </li>
+                </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           ) : (
-            <p className="text-gray-500 text-center text-lg">
+            <p className="text-gray-500 text-center text-xl">
               No exercises in this routine.
             </p>
           )}
         </div>
-        <div className="bg-gray-50 px-6 py-4">
+        <div className="bg-gray-50 px-8 py-6">
           <Link
             to="/dashboard"
-            className="flex items-center text-indigo-600 hover:text-indigo-800 transition duration-150 ease-in-out font-semibold"
+            className="flex items-center text-indigo-600 hover:text-indigo-800 transition duration-150 ease-in-out font-semibold text-lg"
           >
             <FaArrowLeft className="mr-2" />
             Back to Dashboard
@@ -183,61 +207,56 @@ function RoutineDetails() {
         </div>
       </div>
 
+      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div
-              className="fixed inset-0 transition-opacity"
-              aria-hidden="true"
-            >
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span
-              className="hidden sm:inline-block sm:align-middle sm:h-screen"
-              aria-hidden="true"
-            >
-              &#8203;
-            </span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <FaTrashAlt className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      Delete Routine
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Are you sure you want to delete this routine? This
-                        action cannot be undone.
-                      </p>
-                    </div>
+        <div className="fixed z-10 inset-0 overflow-y-auto bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all max-w-lg w-full"
+          >
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <FaTrashAlt className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Delete Routine
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete this routine? This action
+                      cannot be undone.
+                    </p>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setShowDeleteModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
-          </div>
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={handleDelete}
+              >
+                Delete
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </motion.button>
+            </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
