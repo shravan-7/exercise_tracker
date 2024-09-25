@@ -150,7 +150,8 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development, configure properly for production
+# CORS_ALLOW_ALL_ORIGINS = True  # Only for development, configure properly for production
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
 
 # Redis as Celery broker
 CELERY_BROKER_URL = os.getenv('REDIS_URL') # Redis server URL
