@@ -65,7 +65,7 @@ function Progress() {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/progress/?start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}`,
+        `${process.env.REACT_APP_REACT_URL}/api/progress/?start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,

@@ -41,7 +41,7 @@ function CreateRoutine() {
     const fetchExercises = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/exercises/",
+          `${process.env.REACT_APP_REACT_URL}/api/exercises/`,
           {
             headers: {
               Authorization: `Token ${localStorage.getItem("token")}`,
@@ -148,7 +148,7 @@ function CreateRoutine() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/routines/",
+        `${process.env.REACT_APP_REACT_URL}/api/routines/`,
         routineData,
         {
           headers: {

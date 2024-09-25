@@ -21,7 +21,7 @@ function Profile() {
   const fetchUserData = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/user-profile/",
+        `${process.env.REACT_APP_REACT_URL}/api/user-profile/`,
         {
           headers: { Authorization: `Token ${token}` },
         },
@@ -73,7 +73,7 @@ function Profile() {
 
       try {
         await axios.put(
-          "http://localhost:8000/api/update-profile/",
+          `${process.env.REACT_APP_REACT_URL}/api/update-profile/`,
           updatedData,
           {
             headers: {

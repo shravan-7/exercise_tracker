@@ -19,11 +19,14 @@ function Dashboard() {
 
   const fetchRoutines = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/routines/", {
-        headers: {
-          Authorization: `Token ${localStorage.getItem("token")}`,
+      const response = await axios.get(
+        `${process.env.REACT_APP_REACT_URL}/api/routines/`,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
       setRoutines(response.data);
       setLoading(false);
     } catch (error) {
@@ -57,7 +60,7 @@ function Dashboard() {
     if (routineToDelete) {
       try {
         await axios.delete(
-          `http://localhost:8000/api/routines/${routineToDelete.id}/`,
+          `${process.env.REACT_APP_REACT_URL}/api/routines/${routineToDelete.id}/`,
           {
             headers: {
               Authorization: `Token ${localStorage.getItem("token")}`,

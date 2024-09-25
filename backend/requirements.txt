@@ -6,6 +6,7 @@ click==8.1.7
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
+dj-database-url==2.2.0
 Django==3.2.9
 django-celery-beat==2.2.1
 django-cors-headers==3.10.0
@@ -16,6 +17,7 @@ djangorestframework==3.12.4
 kombu==5.4.1
 pillow==10.4.0
 prompt_toolkit==3.0.47
+psycopg2==2.9.9
 psycopg2-binary==2.9.2
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0

@@ -28,7 +28,7 @@ function Home() {
   const fetchExerciseOfTheDay = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/exercise-of-the-day/today/",
+        `${process.env.REACT_APP_REACT_URL}/api/exercise-of-the-day/today/`,
         {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },
         },
@@ -218,7 +218,7 @@ function Home() {
         </p>
       </motion.div>
 
-        {/* <motion.div
+      {/* <motion.div
           className="mt-12 flex flex-wrap justify-center gap-8"
           variants={containerVariants}
         >

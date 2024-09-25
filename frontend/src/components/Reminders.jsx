@@ -7,11 +7,14 @@ function Reminders() {
 
   const fetchReminders = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/reminders/", {
-        headers: {
-          Authorization: `Token ${localStorage.getItem("token")}`,
+      const response = await axios.get(
+        `${process.env.REACT_APP_REACT_URL}/api/reminders/`,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
       setReminders(response.data);
     } catch (error) {
       console.error("Error fetching reminders:", error);
@@ -26,7 +29,7 @@ function Reminders() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/reminders/",
+        `${process.env.REACT_APP_REACT_URL}/api/reminders/`,
         newReminder,
         {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },

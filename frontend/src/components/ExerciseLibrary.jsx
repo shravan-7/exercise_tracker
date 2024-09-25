@@ -28,11 +28,14 @@ function ExerciseLibrary() {
 
   const fetchExercises = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/exercises/", {
-        headers: {
-          Authorization: `Token ${localStorage.getItem("token")}`,
+      const response = await axios.get(
+        `${process.env.REACT_APP_REACT_URL}/api/exercises/`,
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
       setExercises(response.data);
     } catch (error) {
       console.error("Error fetching exercises:", error);
@@ -42,7 +45,7 @@ function ExerciseLibrary() {
   const fetchMuscleGroups = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/muscle-groups/",
+        `${process.env.REACT_APP_REACT_URL}/api/muscle-groups/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -63,7 +66,7 @@ function ExerciseLibrary() {
   const fetchFavoriteExercises = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/exercises/favorites/",
+        `${process.env.REACT_APP_REACT_URL}/api/exercises/favorites/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -79,7 +82,7 @@ function ExerciseLibrary() {
   const fetchExerciseOfTheDay = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/exercise-of-the-day/today/",
+        `${process.env.REACT_APP_REACT_URL}/api/exercise-of-the-day/today/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -107,7 +110,7 @@ function ExerciseLibrary() {
   const toggleFavorite = async (exerciseId) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/exercises/toggle_favorite/",
+        `${process.env.REACT_APP_REACT_URL}/api/exercises/toggle_favorite/`,
         { exercise_id: exerciseId },
         {
           headers: {
@@ -124,7 +127,7 @@ function ExerciseLibrary() {
   const addToWorkout = async (exerciseId) => {
     try {
       await axios.post(
-        "http://localhost:8000/api/add-to-workout/",
+        `${process.env.REACT_APP_REACT_URL}/api/add-to-workout/`,
         { exercise_id: exerciseId },
         {
           headers: {

@@ -40,7 +40,7 @@ function Register() {
     setError("");
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/register/",
+        `${process.env.REACT_APP_REACT_URL}/api/register/`,
         formData,
       );
       login(response.data.token);

@@ -68,7 +68,7 @@ function RoutineTracker() {
   const fetchRoutine = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/routines/${id}/`,
+        `${process.env.REACT_APP_REACT_URL}/api/routines/${id}/`,
         {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },
         },
@@ -201,7 +201,7 @@ function RoutineTracker() {
   const handleFinishWorkout = async () => {
     try {
       await axios.post(
-        `http://localhost:8000/api/completed-workouts/`,
+        `${process.env.REACT_APP_REACT_URL}/api/completed-workouts/`,
         {
           routine: id,
           calories_burned: Math.round(caloriesBurned),

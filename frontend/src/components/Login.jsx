@@ -17,10 +17,13 @@ function Login() {
     e.preventDefault();
     setError("");
     try {
-      const response = await axios.post("http://localhost:8000/api/login/", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_REACT_URL}/api/login/`,
+        {
+          username,
+          password,
+        },
+      );
       login(response.data.token);
       showToast(`Welcome back, ${response.data.username}!`, "success");
       navigate("/dashboard");
