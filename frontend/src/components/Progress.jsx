@@ -14,12 +14,21 @@ import {
   PieChart,
   Pie,
   Cell,
+  AreaChart,
+  Area,
 } from "recharts";
-import { FaCalendar, FaDumbbell, FaFire, FaClock } from "react-icons/fa";
+import {
+  FaCalendar,
+  FaDumbbell,
+  FaFire,
+  FaClock,
+  FaTrophy,
+  FaChartLine,
+} from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
 function Progress() {
   const [progressData, setProgressData] = useState([]);
@@ -29,17 +38,31 @@ function Progress() {
   const [endDate, setEndDate] = useState(new Date());
   const [selectedMetric, setSelectedMetric] = useState("completedExercises");
   const [summaryData, setSummaryData] = useState({});
+  const [loading, setLoading] = useState(true);
+
   const metrics = [
     {
       key: "completedExercises",
       label: "Completed Exercises",
-      color: "#8884d8",
+      color: "#3B82F6",
+      icon: FaDumbbell,
     },
-    { key: "totalWorkoutTime", label: "Total Workout Time", color: "#82ca9d" },
-    { key: "caloriesBurned", label: "Calories Burned", color: "#ffc658" },
+    {
+      key: "totalWorkoutTime",
+      label: "Total Workout Time",
+      color: "#10B981",
+      icon: FaClock,
+    },
+    {
+      key: "caloriesBurned",
+      label: "Calories Burned",
+      color: "#F59E0B",
+      icon: FaFire,
+    },
   ];
 
   const fetchProgress = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await axios.get(
         `http://localhost:8000/api/progress/?start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}`,
@@ -54,6 +77,7 @@ function Progress() {
     } catch (error) {
       console.error("Error fetching progress data:", error);
     }
+    setLoading(false);
   }, [startDate, endDate]);
 
   useEffect(() => {
@@ -63,10 +87,10 @@ function Progress() {
   const renderCustomTooltip = useCallback(({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 rounded shadow">
-          <p className="font-bold">{label}</p>
+        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+          <p className="font-bold text-gray-800">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }}>
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
               {`${entry.name}: ${entry.value}`}
             </p>
           ))}
@@ -77,11 +101,13 @@ function Progress() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold text-gray-900 mb-6">Your Progress</h1>
+    <div className="bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
+        Your Fitness Journey
+      </h1>
 
-      <div className="mb-6 flex flex-wrap items-center space-x-4">
-        <div className="flex items-center space-x-2">
+      <div className="mb-8 flex flex-wrap justify-center items-center space-x-4">
+        <div className="flex items-center space-x-2 mb-4 sm:mb-0">
           <FaCalendar className="text-blue-500" />
           <DatePicker
             selected={startDate}
@@ -89,7 +115,7 @@ function Progress() {
             selectsStart
             startDate={startDate}
             endDate={endDate}
-            className="border rounded p-2"
+            className="border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -101,129 +127,213 @@ function Progress() {
             startDate={startDate}
             endDate={endDate}
             minDate={startDate}
-            className="border rounded p-2"
+            className="border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow flex items-center">
-          <FaDumbbell className="text-3xl text-blue-500 mr-4" />
-          <div>
-            <p className="text-sm text-gray-500">Total Workouts</p>
-            <p className="text-2xl font-bold">
-              {summaryData.totalWorkouts || 0}
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {[
+          {
+            icon: FaDumbbell,
+            label: "Total Workouts",
+            value: summaryData.totalWorkouts || 0,
+            color: "blue",
+          },
+          {
+            icon: FaFire,
+            label: "Calories Burned",
+            value: summaryData.totalCaloriesBurned || 0,
+            color: "orange",
+          },
+          {
+            icon: FaClock,
+            label: "Total Workout Time",
+            value: `${summaryData.totalWorkoutTime || 0} min`,
+            color: "green",
+          },
+          {
+            icon: FaTrophy,
+            label: "Exercises Completed",
+            value: summaryData.totalExercisesCompleted || 0,
+            color: "purple",
+          },
+        ].map((item, index) => (
+          <div
+            key={index}
+            className="bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-xl"
+          >
+            <div className={`text-4xl text-${item.color}-500 mb-4`}>
+              <item.icon />
+            </div>
+            <p className="text-sm text-gray-600">{item.label}</p>
+            <p className="text-3xl font-bold text-gray-800">{item.value}</p>
           </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow flex items-center">
-          <FaFire className="text-3xl text-orange-500 mr-4" />
-          <div>
-            <p className="text-sm text-gray-500">Calories Burned</p>
-            <p className="text-2xl font-bold">
-              {summaryData.totalCaloriesBurned || 0}
-            </p>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow flex items-center">
-          <FaClock className="text-3xl text-green-500 mr-4" />
-          <div>
-            <p className="text-sm text-gray-500">Total Workout Time</p>
-            <p className="text-2xl font-bold">
-              {summaryData.totalWorkoutTime || 0} min
-            </p>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow flex items-center">
-          <FaDumbbell className="text-3xl text-purple-500 mr-4" />
-          <div>
-            <p className="text-sm text-gray-500">Exercises Completed</p>
-            <p className="text-2xl font-bold">
-              {summaryData.totalExercisesCompleted || 0}
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow mb-8">
-        <h2 className="text-2xl font-bold mb-4">Progress Over Time</h2>
-        <div className="mb-4">
-          {metrics.map((metric) => (
-            <button
-              key={metric.key}
-              onClick={() => setSelectedMetric(metric.key)}
-              className={`mr-2 px-4 py-2 rounded ${
-                selectedMetric === metric.key
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              {metric.label}
-            </button>
-          ))}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={progressData}>
-            <XAxis dataKey="date" />
-            <YAxis />
-            <CartesianGrid strokeDasharray="3 3" />
-            <Tooltip content={renderCustomTooltip} />
-            <Legend />
-            {metrics.map((metric) => (
-              <Line
-                key={metric.key}
-                type="monotone"
-                dataKey={metric.key}
-                stroke={metric.color}
-                strokeWidth={selectedMetric === metric.key ? 3 : 1}
-                dot={selectedMetric === metric.key}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-4">Workout Distribution</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={summaryData.workoutDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {summaryData.workoutDistribution &&
-                  summaryData.workoutDistribution.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
+      ) : (
+        <>
+          <div className="bg-white p-8 rounded-xl shadow-md mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+              Progress Over Time
+            </h2>
+            <div className="mb-6 flex flex-wrap justify-center">
+              {metrics.map((metric) => (
+                <button
+                  key={metric.key}
+                  onClick={() => setSelectedMetric(metric.key)}
+                  className={`flex items-center m-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                    selectedMetric === metric.key
+                      ? "bg-blue-500 text-white shadow-md"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  <metric.icon className="mr-2" />
+                  {metric.label}
+                </button>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <AreaChart data={progressData}>
+                <defs>
+                  {metrics.map((metric) => (
+                    <linearGradient
+                      key={metric.key}
+                      id={`color${metric.key}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor={metric.color}
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={metric.color}
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
                   ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-4">Weekly Progress</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={summaryData.weeklyProgress}>
-              <XAxis dataKey="week" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="workouts" fill="#8884d8" />
-              <Bar dataKey="exercises" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+                </defs>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" />
+                <Tooltip content={renderCustomTooltip} />
+                <Legend />
+                {metrics.map((metric) => (
+                  <Area
+                    key={metric.key}
+                    type="monotone"
+                    dataKey={metric.key}
+                    stroke={metric.color}
+                    fillOpacity={1}
+                    fill={`url(#color${metric.key})`}
+                    strokeWidth={selectedMetric === metric.key ? 3 : 1}
+                    dot={selectedMetric === metric.key}
+                  />
+                ))}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div className="bg-white p-8 rounded-xl shadow-md">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Workout Distribution
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={summaryData.workoutDistribution}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label
+                  >
+                    {summaryData.workoutDistribution &&
+                      summaryData.workoutDistribution.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-md">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Weekly Progress
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={summaryData.weeklyProgress}>
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="workouts" fill="#3B82F6" />
+                  <Bar dataKey="exercises" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white p-8 rounded-xl shadow-md">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+              Personal Bests
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  label: "Longest Workout",
+                  value: "90 minutes",
+                  icon: FaClock,
+                },
+                {
+                  label: "Most Calories Burned",
+                  value: "750 kcal",
+                  icon: FaFire,
+                },
+                {
+                  label: "Most Exercises in a Day",
+                  value: "25",
+                  icon: FaDumbbell,
+                },
+                {
+                  label: "Longest Streak",
+                  value: "14 days",
+                  icon: FaChartLine,
+                },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 p-4 rounded-lg text-center"
+                >
+                  <div className="text-3xl text-blue-500 mb-2">
+                    <item.icon />
+                  </div>
+                  <p className="text-sm text-gray-600">{item.label}</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

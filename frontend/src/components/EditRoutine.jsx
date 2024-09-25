@@ -1,8 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaSave, FaPlus, FaTrash, FaDumbbell } from "react-icons/fa";
+import {
+  FaSave,
+  FaPlus,
+  FaTrash,
+  FaDumbbell,
+  FaArrowLeft,
+} from "react-icons/fa";
 import { showToast } from "./CustomToast";
+import { motion } from "framer-motion";
+
+const exerciseTypes = [
+  "Strength",
+  "Cardio",
+  "Flexibility",
+  "Balance",
+  "Plyometric",
+  "Bodyweight",
+];
 
 function EditRoutine() {
   const [routine, setRoutine] = useState({ name: "", exercises: [] });
@@ -31,6 +47,7 @@ function EditRoutine() {
         ...routineResponse.data,
         exercises: routineResponse.data.exercises.map((ex) => ({
           ...ex,
+          exerciseType: ex.exercise_type,
           exercise: ex.exercise,
         })),
       };
@@ -57,7 +74,13 @@ function EditRoutine() {
     (index, field, value) => {
       setRoutine((prevRoutine) => {
         const updatedExercises = [...prevRoutine.exercises];
-        if (field === "exercise") {
+        if (field === "exerciseType") {
+          updatedExercises[index] = {
+            ...updatedExercises[index],
+            exerciseType: value,
+            exercise: "",
+          };
+        } else if (field === "exercise") {
           const selectedExercise = allExercises.find(
             (ex) => ex.id === parseInt(value, 10),
           );
@@ -86,8 +109,8 @@ function EditRoutine() {
       exercises: [
         ...prevRoutine.exercises,
         {
+          exerciseType: "",
           exercise: "",
-          exercise_type: "",
           sets: "",
           reps: "",
           duration: "",
@@ -177,16 +200,31 @@ function EditRoutine() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-100 min-h-screen"
+    >
+      <div className="bg-white shadow-2xl rounded-3xl overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-8 py-6 flex justify-between items-center">
           <h1 className="text-3xl font-bold">Edit Routine</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate(-1)}
+            className="bg-white text-indigo-600 px-4 py-2 rounded-full flex items-center"
+          >
+            <FaArrowLeft className="mr-2" />
+            Back
+          </motion.button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-8">
+
+        <form onSubmit={handleSubmit} className="p-8 space-y-8">
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-lg font-medium text-gray-700 mb-2"
             >
               Routine Name
             </label>
@@ -195,50 +233,90 @@ function EditRoutine() {
               id="name"
               value={routine.name}
               onChange={handleNameChange}
-              className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+              className="w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-lg"
               required
             />
           </div>
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-              <FaDumbbell className="mr-2 text-blue-500" />
+              <FaDumbbell className="mr-3 text-blue-500" />
               Exercises
             </h2>
             {routine.exercises.map((exercise, index) => (
-              <div
+              <motion.div
                 key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
                 className="bg-gray-50 rounded-xl p-6 shadow-md space-y-4 transition-all duration-300 hover:shadow-lg"
               >
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-medium text-gray-900">
                     Exercise {index + 1}
                   </h3>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     type="button"
                     onClick={() => handleRemoveExercise(index)}
                     className="text-red-500 hover:text-red-700 transition duration-200"
                   >
                     <FaTrash />
-                  </button>
+                  </motion.button>
                 </div>
-                <select
-                  value={exercise.exercise || ""}
-                  onChange={(e) =>
-                    handleExerciseChange(index, "exercise", e.target.value)
-                  }
-                  className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                  required
-                >
-                  <option value="">Select exercise</option>
-                  {allExercises.map((ex) => (
-                    <option key={ex.id} value={ex.id}>
-                      {ex.name}
-                    </option>
-                  ))}
-                </select>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Exercise Type
+                    </label>
+                    <select
+                      value={exercise.exerciseType || ""}
+                      onChange={(e) =>
+                        handleExerciseChange(
+                          index,
+                          "exerciseType",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                      required
+                    >
+                      <option value="">Select exercise type</option>
+                      {exerciseTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Exercise
+                    </label>
+                    <select
+                      value={exercise.exercise || ""}
+                      onChange={(e) =>
+                        handleExerciseChange(index, "exercise", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                      required
+                    >
+                      <option value="">Select exercise</option>
+                      {allExercises
+                        .filter(
+                          (ex) => ex.exercise_type === exercise.exerciseType,
+                        )
+                        .map((ex) => (
+                          <option key={ex.id} value={ex.id}>
+                            {ex.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {shouldShowField(exercise.exercise_type, "sets") && (
+                  {shouldShowField(exercise.exerciseType, "sets") && (
                     <input
                       type="number"
                       value={exercise.sets || ""}
@@ -249,7 +327,7 @@ function EditRoutine() {
                       className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                     />
                   )}
-                  {shouldShowField(exercise.exercise_type, "reps") && (
+                  {shouldShowField(exercise.exerciseType, "reps") && (
                     <input
                       type="number"
                       value={exercise.reps || ""}
@@ -260,7 +338,7 @@ function EditRoutine() {
                       className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                     />
                   )}
-                  {shouldShowField(exercise.exercise_type, "duration") && (
+                  {shouldShowField(exercise.exerciseType, "duration") && (
                     <input
                       type="number"
                       value={exercise.duration || ""}
@@ -271,7 +349,7 @@ function EditRoutine() {
                       className="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                     />
                   )}
-                  {shouldShowField(exercise.exercise_type, "distance") && (
+                  {shouldShowField(exercise.exerciseType, "distance") && (
                     <input
                       type="number"
                       value={exercise.distance || ""}
@@ -283,28 +361,33 @@ function EditRoutine() {
                     />
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={handleAddExercise}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center justify-center"
-          >
-            <FaPlus className="mr-2" />
-            Add Exercise
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center justify-center"
-          >
-            <FaSave className="mr-2" />
-            {loading ? "Updating..." : "Update Routine"}
-          </button>
+          <div className="flex justify-between items-center">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={handleAddExercise}
+              className="flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300"
+            >
+              <FaPlus className="mr-2" />
+              Add Exercise
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              disabled={loading}
+              className="px-8 py-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Updating..." : "Update Routine"}
+            </motion.button>
+          </div>
         </form>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
