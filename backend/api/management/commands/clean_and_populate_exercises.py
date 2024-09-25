@@ -2,28 +2,23 @@ from django.core.management.base import BaseCommand
 from api.models import MuscleGroup, Exercise
 
 class Command(BaseCommand):
-    help = 'Populates the database with a comprehensive list of exercises and their descriptions'
+    help = 'Cleans existing exercise and muscle group data and repopulates with a comprehensive list'
 
     def handle(self, *args, **kwargs):
+        # Clean existing data
+        self.stdout.write('Cleaning existing data...')
+        Exercise.objects.all().delete()
+        MuscleGroup.objects.all().delete()
+
         # Create muscle groups
-        muscle_groups = {
-            "Chest": MuscleGroup.objects.create(name="Chest"),
-            "Back": MuscleGroup.objects.create(name="Back"),
-            "Shoulders": MuscleGroup.objects.create(name="Shoulders"),
-            "Biceps": MuscleGroup.objects.create(name="Biceps"),
-            "Triceps": MuscleGroup.objects.create(name="Triceps"),
-            "Forearms": MuscleGroup.objects.create(name="Forearms"),
-            "Quadriceps": MuscleGroup.objects.create(name="Quadriceps"),
-            "Hamstrings": MuscleGroup.objects.create(name="Hamstrings"),
-            "Calves": MuscleGroup.objects.create(name="Calves"),
-            "Glutes": MuscleGroup.objects.create(name="Glutes"),
-            "Abs": MuscleGroup.objects.create(name="Abs"),
-            "Obliques": MuscleGroup.objects.create(name="Obliques"),
-            "Lower Back": MuscleGroup.objects.create(name="Lower Back"),
-            "Trapezius": MuscleGroup.objects.create(name="Trapezius"),
-            "Cardiovascular": MuscleGroup.objects.create(name="Cardiovascular"),
-            "Full Body": MuscleGroup.objects.create(name="Full Body"),
-        }
+        self.stdout.write('Creating muscle groups...')
+        muscle_groups = {}
+        for name in [
+            "Chest", "Back", "Shoulders", "Biceps", "Triceps", "Forearms",
+            "Quadriceps", "Hamstrings", "Calves", "Glutes", "Abs", "Obliques",
+            "Lower Back", "Trapezius", "Cardiovascular", "Full Body"
+        ]:
+            muscle_groups[name] = MuscleGroup.objects.create(name=name)
 
         # List of exercises with their muscle groups, types, and descriptions
         exercises = [
@@ -133,8 +128,8 @@ class Command(BaseCommand):
             ("Sled Pushes", "Full Body", "Strength", "Pushing a weighted sled across a distance."),
             ("Tire Flips", "Full Body", "Strength", "Flipping a large, heavy tire for explosive strength."),
         ]
-
         # Create exercises
+        self.stdout.write('Creating exercises...')
         for name, muscle_group, exercise_type, description in exercises:
             Exercise.objects.create(
                 name=name,
