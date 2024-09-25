@@ -23,7 +23,10 @@
     "react-spring": "^9.7.4",
     "react-toastify": "^10.0.5",
     "recharts": "^2.12.7",
-    "web-vitals": "^1.0.1"
+    "web-vitals": "^1.0.1",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2"
   },
   "scripts": {
     "start": "react-scripts start",

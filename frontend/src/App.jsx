@@ -17,6 +17,7 @@ import CreateRoutine from "./components/CreateRoutine";
 import Reminders from "./components/Reminders";
 import RoutineDetails from "./components/RoutineDetails";
 import EditRoutine from "./components/EditRoutine";
+import ContactUs from './components/ContactUs';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/track-routine/:id" element={<RoutineTracker />} />
                 <Route path="/routine/:id" element={<RoutineDetails />} />
                 <Route path="/edit-routine/:id" element={<EditRoutine />} />
+                <Route path="/contact" element={<ContactUs />} />
               </Routes>
             </div>
           </div>
