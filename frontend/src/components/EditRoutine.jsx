@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  FaSave,
-  FaPlus,
-  FaTrash,
-  FaDumbbell,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { FaPlus, FaTrash, FaDumbbell, FaArrowLeft } from "react-icons/fa";
 import { showToast } from "./CustomToast";
 import { motion } from "framer-motion";
 

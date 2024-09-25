@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

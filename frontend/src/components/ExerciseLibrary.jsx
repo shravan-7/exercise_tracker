@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   FaSearch,
-  FaChevronDown,
   FaStar,
   FaInfoCircle,
   FaVideo,
@@ -356,10 +355,17 @@ function ExerciseLibrary() {
                 </span>
               </div>
               <a
-                href="#" // Replace with actual video link
+                href={selectedExercise.video_url || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center text-blue-500 hover:text-blue-700 transition-colors duration-200 mb-6"
+                className={`inline-flex items-center ${
+                  selectedExercise.video_url
+                    ? "text-blue-500 hover:text-blue-700"
+                    : "text-gray-400 cursor-not-allowed"
+                } transition-colors duration-200 mb-6`}
+                onClick={(e) =>
+                  !selectedExercise.video_url && e.preventDefault()
+                }
               >
                 <FaVideo className="mr-2" /> Watch Exercise Video
               </a>
