@@ -198,14 +198,19 @@ def register(request):
             logger.error(f"Error during user creation: {str(e)}")
             return Response({'error': 'An error occurred during registration.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     logger.error(f"Invalid registration data: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'error': 'Invalid registration data',
+        'details': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
     username = request.data.get('username')
+    print(username)
     password = request.data.get('password')
+    print(password)
     logger.info(f"Login attempt for username: {username}")
     logger.info(f"Request data: {request.data}")
 

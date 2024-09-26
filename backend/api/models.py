@@ -5,8 +5,7 @@ from django.utils import timezone
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
-    gender = models.CharField(max_length=10,
-    choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -16,6 +15,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 class MuscleGroup(models.Model):
     name = models.CharField(max_length=50)

@@ -25,7 +25,7 @@ function Register() {
     name: "",
     gender: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const { login } = useAuth();
 
   const handleChange = (e) => {
@@ -37,7 +37,7 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrors({});
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_REACT_URL}/api/register/`,
@@ -50,9 +50,13 @@ function Register() {
       );
       navigate("/dashboard");
     } catch (error) {
-      setError(
-        error.response?.data?.error || "Registration failed. Please try again.",
-      );
+      if (error.response && error.response.data) {
+        setErrors(
+          error.response.data.details || { general: error.response.data.error },
+        );
+      } else {
+        setErrors({ general: "An error occurred. Please try again." });
+      }
       console.error("Registration error:", error.response?.data);
     }
   };
@@ -182,6 +186,11 @@ function Register() {
                           />
                         )}
                       </div>
+                      {errors[field.name] && (
+                        <p className="mt-2 text-sm text-red-600">
+                          {errors[field.name].join(", ")}
+                        </p>
+                      )}
                     </motion.div>
                   ))}
                 </div>
@@ -198,13 +207,13 @@ function Register() {
                   </button>
                 </motion.div>
               </form>
-              {error && (
+              {errors.general && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="mt-2 text-center text-sm text-red-600"
                 >
-                  {error}
+                  {errors.general}
                 </motion.p>
               )}
               <motion.div
