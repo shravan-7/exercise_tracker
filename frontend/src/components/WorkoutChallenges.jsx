@@ -132,9 +132,10 @@ function WorkoutChallenges() {
       >
         <div className="relative h-40 sm:h-48">
           <img
-            src={`${process.env.PUBLIC_URL}/images/${challengeData.name
-              .toLowerCase()
-              .replace(/\s+/g, "-")}.jpg`}
+            src={
+              challengeData.image_url ||
+              `${process.env.PUBLIC_URL}/images/default-challenge.jpg`
+            }
             alt={challengeData.name}
             className="w-full h-full object-cover"
             onError={(e) => {
