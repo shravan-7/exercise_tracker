@@ -2,12 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
     gender = models.CharField(max_length=10,
     choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    profile_picture = CloudinaryField('image', null=True, blank=True)
 
     def __str__(self):
         return self.username

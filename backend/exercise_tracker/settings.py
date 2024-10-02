@@ -34,6 +34,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,6 +62,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_celery_beat',
     'api',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -158,3 +163,16 @@ CELERY_BROKER_URL = os.getenv('REDIS_URL') # Redis server URL
 CELERY_RESULT_BACKEND = os.getenv('REDIS_URL') # Store results in Redis
 CELERY_ACCEPT_CONTENT = ['json']                # Accept only JSON format
 CELERY_TASK_SERIALIZER = 'json'                 # Serialize tasks in JSON format
+
+
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name = os.getenv('CLOUDINARY_URL', '').split('@')[-1] if os.getenv('CLOUDINARY_URL') else None,
+    api_key = os.getenv('CLOUDINARY_URL', '').split('://')[1].split(':')[0] if os.getenv('CLOUDINARY_URL') else None,
+    api_secret = os.getenv('CLOUDINARY_URL', '').split('://')[1].split(':')[1].split('@')[0] if os.getenv('CLOUDINARY_URL') else None
+)
+
+CLOUDINARY_STORAGE = cloudinary.config()
+
+# Use Cloudinary for media files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
