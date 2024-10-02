@@ -28,7 +28,7 @@ function ExerciseLibrary() {
   const fetchExercises = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/exercises/`,
+        `${process.env.REACT_APP_API_URL}/exercises/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -44,7 +44,7 @@ function ExerciseLibrary() {
   const fetchMuscleGroups = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/muscle-groups/`,
+        `${process.env.REACT_APP_API_URL}/muscle-groups/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -65,7 +65,7 @@ function ExerciseLibrary() {
   const fetchFavoriteExercises = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/exercises/favorites/`,
+        `${process.env.REACT_APP_API_URL}/exercises/favorites/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -81,7 +81,7 @@ function ExerciseLibrary() {
   const fetchExerciseOfTheDay = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/exercise-of-the-day/today/`,
+        `${process.env.REACT_APP_API_URL}/exercise-of-the-day/today/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -109,7 +109,7 @@ function ExerciseLibrary() {
   const toggleFavorite = async (exerciseId) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_REACT_URL}/api/exercises/toggle_favorite/`,
+        `${process.env.REACT_APP_API_URL}/exercises/toggle_favorite/`,
         { exercise_id: exerciseId },
         {
           headers: {
@@ -126,7 +126,7 @@ function ExerciseLibrary() {
   const addToWorkout = async (exerciseId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_REACT_URL}/api/add-to-workout/`,
+        `${process.env.REACT_APP_API_URL}/add-to-workout/`,
         { exercise_id: exerciseId },
         {
           headers: {
@@ -149,7 +149,7 @@ function ExerciseLibrary() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <motion.h1
           initial={{ opacity: 0, y: -50 }}
@@ -358,14 +358,7 @@ function ExerciseLibrary() {
                 href={selectedExercise.video_url || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center ${
-                  selectedExercise.video_url
-                    ? "text-blue-500 hover:text-blue-700"
-                    : "text-gray-400 cursor-not-allowed"
-                } transition-colors duration-200 mb-6`}
-                onClick={(e) =>
-                  !selectedExercise.video_url && e.preventDefault()
-                }
+                className="inline-flex items-center text-blue-500 hover:text-blue-700 transition-colors duration-200 mb-6"
               >
                 <FaVideo className="mr-2" /> Watch Exercise Video
               </a>

@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, CompletedExercise, Reminder,FavoriteExercise, ExerciseOfTheDay
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-
+from .models import MuscleGroup, Exercise, Routine, RoutineExercise ,CompletedWorkout, CompletedExercise, Reminder,FavoriteExercise, ExerciseOfTheDay,WorkoutChallenge,UserChallenge
 
 User = get_user_model()
+
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -14,10 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'confirm_password', 'name', 'gender')
+        fields = ['id', 'username', 'email', 'name', 'gender', 'password', 'confirm_password']
         extra_kwargs = {
-            'username': {'required': True},
-            'email': {'required': True},
+            'password': {'write_only': True}
         }
 
     def validate(self, attrs):
@@ -177,3 +176,29 @@ class ProgressSerializer(serializers.Serializer):
     completedExercises = serializers.IntegerField()
     totalWorkoutTime = serializers.IntegerField()
     caloriesBurned = serializers.IntegerField()
+
+
+from .models import WorkoutChallenge, UserChallenge, UserChallengeExercise, Exercise
+
+
+class WorkoutChallengeSerializer(serializers.ModelSerializer):
+    exercises = ExerciseSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = WorkoutChallenge
+        fields = ['id', 'name', 'description', 'start_date', 'end_date', 'goal', 'exercises', 'difficulty', 'image_url']
+
+class UserChallengeExerciseSerializer(serializers.ModelSerializer):
+    exercise = ExerciseSerializer(read_only=True)
+
+    class Meta:
+        model = UserChallengeExercise
+        fields = ['id', 'exercise', 'completed']
+
+class UserChallengeSerializer(serializers.ModelSerializer):
+    challenge = WorkoutChallengeSerializer(read_only=True)
+    exercise_progress = UserChallengeExerciseSerializer(many=True, read_only=True, source='userchallengeexercise_set')
+
+    class Meta:
+        model = UserChallenge
+        fields = ['id', 'challenge', 'progress', 'completed', 'joined_date', 'exercise_progress']

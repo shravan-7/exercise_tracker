@@ -45,7 +45,7 @@ AUTH_USER_MODEL = 'api.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
-LOGIN_URL = f"{os.getenv('FRONTEND_URL')}/api/login/"
+LOGIN_URL = f"{os.getenv('REACT_APP_API_URL')}/login/"
 
 INSTALLED_APPS = [
     'django.contrib.admin',

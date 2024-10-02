@@ -7,7 +7,7 @@ from datetime import timedelta,datetime
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
-from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, FavoriteExercise, ExerciseOfTheDay,CompletedExercise, Reminder
+from .models import MuscleGroup, Exercise, Routine, RoutineExercise, CompletedWorkout, FavoriteExercise, ExerciseOfTheDay,CompletedExercise, Reminder,WorkoutChallenge,UserChallenge,UserChallengeExercise
 from django.views.decorators.csrf import csrf_exempt
 import logging
 from rest_framework.views import APIView
@@ -22,8 +22,7 @@ from .serializers import (
     UserSerializer, MuscleGroupSerializer, ExerciseSerializer,
     RoutineSerializer, RoutineExerciseSerializer, CompletedExerciseSerializer,
     ReminderSerializer, RoutineDetailSerializer, CompletedWorkoutSerializer,UserProfileSerializer, UserProfileUpdateSerializer,
-    RoutineDetailSerializer,FavoriteExerciseSerializer, ExerciseOfTheDaySerializer,ProgressSerializer
-
+    RoutineDetailSerializer,FavoriteExerciseSerializer, ExerciseOfTheDaySerializer,ProgressSerializer,WorkoutChallengeSerializer,UserChallengeSerializer,
 )
 
 
@@ -191,26 +190,27 @@ def register(request):
             logger.info(f"User registered successfully: {user.username}")
             return Response({
                 'token': token.key,
-                'user_id': user.id,
+                'user_id': user.pk,
                 'username': user.username
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error(f"Error during user creation: {str(e)}")
             return Response({'error': 'An error occurred during registration.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     logger.error(f"Invalid registration data: {serializer.errors}")
-    return Response({
-        'error': 'Invalid registration data',
-        'details': serializer.errors
-    }, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt
+    # Flatten the error messages
+    error_messages = []
+    for field, errors in serializer.errors.items():
+        for error in errors:
+            error_messages.append(f"{field.capitalize()}: {error}")
+
+    return Response({'errors': error_messages}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
     username = request.data.get('username')
-    print(username)
     password = request.data.get('password')
-    print(password)
     logger.info(f"Login attempt for username: {username}")
     logger.info(f"Request data: {request.data}")
 
@@ -315,3 +315,129 @@ class ProgressView(APIView):
             }
             for item in weekly_progress
         ]
+
+from django.contrib.auth import update_session_auth_hash
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    if request.method == 'POST':
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not request.user.check_password(current_password):
+            return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.set_password(new_password)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+        return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    if request.method == 'DELETE':
+        user = request.user
+        user.delete()
+        return Response({'message': 'Account deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import WorkoutChallenge, UserChallenge, UserChallengeExercise
+from .serializers import WorkoutChallengeSerializer, UserChallengeSerializer, UserChallengeExerciseSerializer
+
+class WorkoutChallengeViewSet(viewsets.ModelViewSet):
+    queryset = WorkoutChallenge.objects.all()
+    serializer_class = WorkoutChallengeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=True, methods=['POST'])
+    def join(self, request, pk=None):
+        challenge = self.get_object()
+        user = request.user
+        user_challenge, created = UserChallenge.objects.get_or_create(user=user, challenge=challenge)
+
+        if created:
+            for exercise in challenge.exercises.all():
+                UserChallengeExercise.objects.create(user_challenge=user_challenge, exercise=exercise)
+            return Response({"message": "Successfully joined the challenge."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "You've already joined this challenge."}, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        user_challenge = UserChallenge.objects.filter(user=request.user, challenge=instance).first()
+        if user_challenge:
+            exercise_progress = UserChallengeExercise.objects.filter(user_challenge=user_challenge)
+            data['exercises'] = [
+                {
+                    'id': progress.exercise.id,
+                    'name': progress.exercise.name,
+                    'completed': progress.completed
+                }
+                for progress in exercise_progress
+            ]
+            data['user_challenge_id'] = user_challenge.id
+            data['progress'] = user_challenge.progress
+            data['completed'] = user_challenge.completed
+            data['has_joined'] = True
+        else:
+            data['exercises'] = [
+                {
+                    'id': exercise.id,
+                    'name': exercise.name,
+                    'completed': False
+                }
+                for exercise in instance.exercises.all()
+            ]
+            data['user_challenge_id'] = None
+            data['progress'] = 0
+            data['completed'] = False
+            data['has_joined'] = False
+        return Response(data)
+
+class UserChallengeViewSet(viewsets.ModelViewSet):
+    serializer_class = UserChallengeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return UserChallenge.objects.filter(user=self.request.user)
+
+    @action(detail=True, methods=['POST'])
+    def update_progress(self, request, pk=None):
+        user_challenge = self.get_object()
+        exercise_id = request.data.get('exercise_id')
+
+        if not exercise_id:
+            return Response({"message": "Exercise ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        exercise_progress = get_object_or_404(UserChallengeExercise, user_challenge=user_challenge, exercise_id=exercise_id)
+        exercise_progress.completed = True
+        exercise_progress.save()
+
+        user_challenge.progress = UserChallengeExercise.objects.filter(user_challenge=user_challenge, completed=True).count()
+        if user_challenge.progress >= user_challenge.challenge.goal:
+            user_challenge.completed = True
+        user_challenge.save()
+
+        # Fetch updated challenge data
+        challenge_data = WorkoutChallengeSerializer(user_challenge.challenge).data
+        challenge_data['exercises'] = [
+            {
+                'id': progress.exercise.id,
+                'name': progress.exercise.name,
+                'completed': progress.completed
+            }
+            for progress in UserChallengeExercise.objects.filter(user_challenge=user_challenge)
+        ]
+        challenge_data['user_challenge_id'] = user_challenge.id
+        challenge_data['progress'] = user_challenge.progress
+        challenge_data['completed'] = user_challenge.completed
+        challenge_data['has_joined'] = True
+
+        return Response(challenge_data)

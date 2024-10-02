@@ -5,17 +5,12 @@ from django.utils import timezone
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+    gender = models.CharField(max_length=10,
+    choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.password and not self.password.startswith(('pbkdf2_sha256$', 'bcrypt$', 'argon2$')):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
-
 
 class MuscleGroup(models.Model):
     name = models.CharField(max_length=50)
@@ -111,3 +106,51 @@ class ExerciseOfTheDay(models.Model):
 
     def __str__(self):
         return f"{self.date}: {self.exercise.name}"
+
+
+class WorkoutChallenge(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    goal = models.IntegerField()
+    exercises = models.ManyToManyField('Exercise')
+    difficulty = models.CharField(max_length=20, choices=[('Easy', 'Easy'), ('Medium', 'Medium'), ('Hard', 'Hard')])
+    image_url = models.URLField(blank=True, null=True)
+    exercise_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('Strength', 'Strength'),
+            ('Cardio', 'Cardio'),
+            ('Flexibility', 'Flexibility'),
+            ('Balance', 'Balance'),
+            ('Plyometric', 'Plyometric'),
+            ('Bodyweight', 'Bodyweight'),
+        ],
+        default='Strength'  # Added default value
+    )
+
+    def __str__(self):
+        return self.name
+
+class UserChallenge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    challenge = models.ForeignKey(WorkoutChallenge, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    joined_date = models.DateTimeField(default=timezone.now)
+    last_updated = models.DateTimeField(auto_now=True)  # Add this line
+
+    class Meta:
+        unique_together = ('user', 'challenge')
+
+    def __str__(self):
+        return f"{self.user.username}'s progress on {self.challenge.name}"
+class UserChallengeExercise(models.Model):
+    user_challenge = models.ForeignKey(UserChallenge, on_delete=models.CASCADE, related_name='exercise_progress')
+    exercise = models.ForeignKey('Exercise', on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
+    completed_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user_challenge', 'exercise')

@@ -9,6 +9,9 @@ import {
   FaUserCircle,
   FaTachometerAlt,
   FaEnvelope,
+  FaUserPlus,
+  FaSignInAlt,
+  FaTrophy,
 } from "react-icons/fa";
 
 function Navbar() {
@@ -37,7 +40,7 @@ function Navbar() {
     if (isLoggedIn) {
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/user-profile/",
+          `${process.env.REACT_APP_API_URL}/user-profile/`,
           {
             headers: {
               Authorization: `Token ${localStorage.getItem("token")}`,
@@ -64,21 +67,22 @@ function Navbar() {
     { to: "/dashboard", text: "Dashboard", icon: FaTachometerAlt },
     { to: "/exercises", text: "Exercises", icon: FaDumbbell },
     { to: "/progress", text: "Progress", icon: FaChartLine },
+    { to: "/workout-challenges", text: "Challenges", icon: FaTrophy },
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-blue-400 to-blue-700 shadow-lg">
+    <nav className="app-navbar bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               >
-                <FaDumbbell className="h-8 w-8 text-white" />
+                <FaDumbbell className="h-10 w-10 text-white" />
               </motion.div>
-              <span className="ml-3 text-white font-bold text-xl tracking-tight">
+              <span className="ml-3 text-white font-bold text-2xl tracking-tight">
                 Exercise Tracker
               </span>
             </Link>
@@ -138,14 +142,6 @@ function Navbar() {
                           <FaUserCircle className="mr-2" />
                           Profile
                         </Link>
-                        <Link
-                          to="/contact"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setDropdownOpen(false)}
-                        >
-                          <FaEnvelope className="mr-2" />
-                          Contact Us
-                        </Link>
                         <button
                           onClick={() => {
                             handleLogout();
@@ -177,16 +173,30 @@ function Navbar() {
             ) : (
               <>
                 <Link
-                  to="/login"
-                  className="text-white hover:bg-blue-500 hover:bg-opacity-50 px-3 py-2 rounded-md text-sm font-medium transition duration-200 ease-in-out"
+                  to="/features"
+                  className="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition duration-200 ease-in-out"
                 >
+                  Features
+                </Link>
+                <Link
+                  to="/about"
+                  className="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition duration-200 ease-in-out"
+                >
+                  About
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-white hover:bg-blue-500 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 ease-in-out border border-white"
+                >
+                  <FaSignInAlt className="inline-block mr-2" />
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-white text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition duration-200 ease-in-out"
+                  className="bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-md text-sm font-bold transition duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
-                  Register
+                  <FaUserPlus className="inline-block mr-2" />
+                  Sign Up
                 </Link>
               </>
             )}
@@ -245,7 +255,7 @@ function Navbar() {
             transition={{ duration: 0.2 }}
             className="md:hidden"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-700">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-indigo-700">
               {isLoggedIn ? (
                 <>
                   {navLinks.map((link) => (
@@ -280,10 +290,10 @@ function Navbar() {
                       handleLogout();
                       setIsOpen(false);
                     }}
-                    className="flex items-center w-full text-left text-white hover:bg-blue-600 px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
+                    className="flex items-center w-full text-left text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
                   >
                     <svg
-                      className="mr-2 h-5 w-5"
+                      className="mr-2 h-4 w-4"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -302,10 +312,26 @@ function Navbar() {
               ) : (
                 <>
                   <Link
+                    to="/features"
+                    className="text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Features
+                  </Link>
+
+                  <Link
+                    to="/about"
+                    className="text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
                     to="/login"
                     className="text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
                     onClick={() => setIsOpen(false)}
                   >
+                    <FaSignInAlt className="inline-block mr-2" />
                     Login
                   </Link>
                   <Link
@@ -313,7 +339,8 @@ function Navbar() {
                     className="text-white hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium transition duration-200 ease-in-out"
                     onClick={() => setIsOpen(false)}
                   >
-                    Register
+                    <FaUserPlus className="inline-block mr-2" />
+                    Sign Up
                   </Link>
                 </>
               )}

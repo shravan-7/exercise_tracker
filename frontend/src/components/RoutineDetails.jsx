@@ -24,7 +24,7 @@ function RoutineDetails() {
   const fetchRoutineDetails = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/routines/${id}/`,
+        `${process.env.REACT_APP_API_URL}/routines/${id}/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -54,14 +54,11 @@ function RoutineDetails() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_REACT_URL}/api/routines/${id}/`,
-        {
-          headers: {
-            Authorization: `Token ${localStorage.getItem("token")}`,
-          },
+      await axios.delete(`${process.env.REACT_APP_API_URL}/routines/${id}/`, {
+        headers: {
+          Authorization: `Token ${localStorage.getItem("token")}`,
         },
-      );
+      });
       navigate("/dashboard");
     } catch (error) {
       console.error("Error deleting routine:", error);

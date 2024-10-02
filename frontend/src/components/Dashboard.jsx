@@ -20,7 +20,7 @@ function Dashboard() {
   const fetchRoutines = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/routines/`,
+        `${process.env.REACT_APP_API_URL}/routines/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -60,7 +60,7 @@ function Dashboard() {
     if (routineToDelete) {
       try {
         await axios.delete(
-          `${process.env.REACT_APP_REACT_URL}/api/routines/${routineToDelete.id}/`,
+          `${process.env.REACT_APP_API_URL}/routines/${routineToDelete.id}/`,
           {
             headers: {
               Authorization: `Token ${localStorage.getItem("token")}`,

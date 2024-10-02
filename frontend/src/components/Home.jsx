@@ -28,7 +28,7 @@ function Home() {
   const fetchExerciseOfTheDay = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/exercise-of-the-day/today/`,
+        `${process.env.REACT_APP_API_URL}/exercise-of-the-day/today/`,
         {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },
         },
@@ -60,7 +60,7 @@ function Home() {
 
   const features = [
     {
-      icon: <FaChartLine className="text-4xl text-blue-400" />,
+      icon: <FaChartLine className="text-4xl bg-co text-blue-400" />,
       title: "Track Progress",
       description:
         "Monitor your fitness journey with detailed analytics and insights",
@@ -103,7 +103,7 @@ function Home() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12"
+      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -113,14 +113,14 @@ function Home() {
         variants={itemVariants}
       >
         <motion.h1
-          className="text-5xl sm:text-6xl font-extrabold text-white mb-2"
+          className="text-5xl sm:text-6xl font-extrabold text-blue-800 mb-2"
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
           Exercise Tracker
         </motion.h1>
         <motion.p
-          className="text-xl sm:text-2xl text-blue-200 mb-12"
+          className="text-xl sm:text-2xl text-blue-600 mb-12"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 3, repeat: Infinity }}
         >
@@ -134,13 +134,13 @@ function Home() {
             <>
               <Link
                 to="/login"
-                className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:rotate-1 shadow-lg"
+                className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:scale-105 hover:rotate-1 shadow-lg"
               >
                 Log In
               </Link>
               <Link
                 to="/register"
-                className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:-rotate-1 shadow-lg"
+                className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-blue-600 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:scale-105 hover:-rotate-1 shadow-lg"
               >
                 Sign Up
               </Link>
@@ -148,7 +148,7 @@ function Home() {
           ) : (
             <Link
               to="/dashboard"
-              className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              className="w-full sm:w-auto px-8 py-3 text-lg font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
             >
               Go to Dashboard
             </Link>
@@ -158,23 +158,23 @@ function Home() {
 
       {isLoggedIn && exerciseOfTheDay && (
         <motion.div
-          className="mt-12 bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl max-w-md w-full"
+          className="mt-12 bg-white rounded-xl p-6 shadow-xl max-w-md w-full border border-blue-200"
           variants={itemVariants}
         >
-          <h3 className="text-2xl font-semibold text-white mb-4">
+          <h3 className="text-2xl font-semibold text-blue-800 mb-4">
             Exercise of the Day
           </h3>
           {exerciseOfTheDay.exercise ? (
             <>
-              <p className="text-blue-200 mb-2">
+              <p className="text-blue-600 mb-2 font-medium">
                 {exerciseOfTheDay.exercise.name}
               </p>
-              <p className="text-sm text-blue-300">
+              <p className="text-sm text-blue-500">
                 {exerciseOfTheDay.exercise.description}
               </p>
             </>
           ) : (
-            <p className="text-blue-200">No exercise available for today.</p>
+            <p className="text-blue-500">No exercise available for today.</p>
           )}
         </motion.div>
       )}
@@ -186,7 +186,7 @@ function Home() {
         {features.map((feature, index) => (
           <motion.div
             key={index}
-            className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl cursor-pointer"
+            className="bg-white rounded-xl p-6 shadow-lg cursor-pointer border border-blue-200 hover:border-blue-400 transition-colors duration-300"
             variants={itemVariants}
             whileHover={{ scale: 1.05, rotate: 1 }}
             whileTap={{ scale: 0.95 }}
@@ -199,44 +199,66 @@ function Home() {
             >
               {feature.icon}
             </motion.div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-blue-800 mb-2">
               {feature.title}
             </h3>
-            <p className="text-blue-200">{feature.description}</p>
+            <p className="text-blue-600">{feature.description}</p>
           </motion.div>
         ))}
       </motion.div>
 
       <motion.div className="mt-16 text-center" variants={itemVariants}>
-        <h2 className="text-3xl font-bold text-white mb-4">
+        <h2 className="text-3xl font-bold text-blue-800 mb-4">
           Why Choose Exercise Tracker?
         </h2>
-        <p className="text-xl text-blue-200 max-w-2xl mx-auto">
+        <p className="text-xl text-blue-600 max-w-2xl mx-auto">
           Exercise Tracker is more than just a routine tracker. It's your
           personal fitness companion, designed to help you achieve your goals,
           stay motivated, and make your fitness journey enjoyable and rewarding.
         </p>
       </motion.div>
 
-      {/* <motion.div
-          className="mt-12 flex flex-wrap justify-center gap-8"
-          variants={containerVariants}
-        >
-          {[
-            { number: "1M+", label: "Active Users" },
-            { number: "10K+", label: "Workouts Completed" },
-            { number: "95%", label: "User Satisfaction" },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="text-center"
-              variants={itemVariants}
-            >
-              <p className="text-4xl font-bold text-white">{stat.number}</p>
-              <p className="text-blue-200">{stat.label}</p>
-            </motion.div>
-          ))}
-        </motion.div> */}
+      <motion.div
+        className="mt-12 flex flex-wrap justify-center gap-8"
+        variants={containerVariants}
+      >
+        {[
+          {
+            icon: "📊",
+            label: "Progress Visualization",
+            description:
+              "Track your fitness journey with intuitive charts and graphs",
+          },
+          {
+            icon: "🎯",
+            label: "Goal Setting",
+            description: "Set and achieve personalized fitness milestones",
+          },
+          {
+            icon: "🏋️‍♂️",
+            label: "Exercise Library",
+            description:
+              "Access a vast collection of workout routines and exercises",
+          },
+          {
+            icon: "🔔",
+            label: "Smart Reminders",
+            description: "Never miss a workout with customizable notifications",
+          },
+        ].map((feature, index) => (
+          <motion.div
+            key={index}
+            className="text-center bg-white rounded-xl p-6 shadow-lg border border-blue-200 w-64"
+            variants={itemVariants}
+          >
+            <p className="text-4xl mb-2">{feature.icon}</p>
+            <h3 className="text-xl font-bold text-blue-600 mb-2">
+              {feature.label}
+            </h3>
+            <p className="text-blue-500 text-sm">{feature.description}</p>
+          </motion.div>
+        ))}
+      </motion.div>
     </motion.div>
   );
 }

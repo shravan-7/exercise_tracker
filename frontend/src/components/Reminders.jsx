@@ -8,7 +8,7 @@ function Reminders() {
   const fetchReminders = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_REACT_URL}/api/reminders/`,
+        `${process.env.REACT_APP_API_URL}/reminders/`,
         {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
@@ -29,7 +29,7 @@ function Reminders() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_REACT_URL}/api/reminders/`,
+        `${process.env.REACT_APP_API_URL}/reminders/`,
         newReminder,
         {
           headers: { Authorization: `Token ${localStorage.getItem("token")}` },

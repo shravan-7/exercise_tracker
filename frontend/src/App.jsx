@@ -17,16 +17,20 @@ import CreateRoutine from "./components/CreateRoutine";
 import Reminders from "./components/Reminders";
 import RoutineDetails from "./components/RoutineDetails";
 import EditRoutine from "./components/EditRoutine";
-import ContactUs from './components/ContactUs';
+import Footer from "./components/Footer";
+import About from "./components/About";
+import Features from "./components/Features";
+import WorkoutChallenges from "./components/WorkoutChallenges";
 
 function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <Router>
-          <div className="App bg-gray-100 min-h-screen">
+          <div className="app-container">
             <Navbar />
-            <div className="container mx-auto mt-4 px-4">
+            <main className="main-content bg-gradient-to-br from-gray-50 to-blue-100">
+              {/* <div className="container mx-auto mt-4 px-4"> */}
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
@@ -40,9 +44,16 @@ function App() {
                 <Route path="/track-routine/:id" element={<RoutineTracker />} />
                 <Route path="/routine/:id" element={<RoutineDetails />} />
                 <Route path="/edit-routine/:id" element={<EditRoutine />} />
-                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/features" element={<Features />} />
+                <Route
+                  path="/workout-challenges"
+                  element={<WorkoutChallenges />}
+                />
               </Routes>
-            </div>
+              {/* </div> */}
+            </main>
+            <Footer />
           </div>
         </Router>
       </AuthProvider>

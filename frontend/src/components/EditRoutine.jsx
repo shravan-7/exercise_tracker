@@ -25,12 +25,12 @@ function EditRoutine() {
   const fetchData = useCallback(async () => {
     try {
       const [routineResponse, exercisesResponse] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_REACT_URL}/api/routines/${id}/`, {
+        axios.get(`${process.env.REACT_APP_API_URL}/routines/${id}/`, {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
           },
         }),
-        axios.get(`${process.env.REACT_APP_REACT_URL}/api/exercises/`, {
+        axios.get(`${process.env.REACT_APP_API_URL}/exercises/`, {
           headers: {
             Authorization: `Token ${localStorage.getItem("token")}`,
           },
@@ -139,7 +139,7 @@ function EditRoutine() {
         };
         console.log("Sending data:", JSON.stringify(updatedRoutine, null, 2));
         const response = await axios.put(
-          `${process.env.REACT_APP_REACT_URL}/api/routines/${id}/`,
+          `${process.env.REACT_APP_API_URL}/routines/${id}/`,
           updatedRoutine,
           {
             headers: {

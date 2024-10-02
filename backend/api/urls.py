@@ -3,7 +3,10 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     UserViewSet, MuscleGroupViewSet, ExerciseViewSet, RoutineViewSet,
     RoutineExerciseViewSet, CompletedExerciseViewSet, ReminderViewSet,
-    register, login, save_completed_workout, user_profile, update_profile, get_exercise_types, ExerciseOfTheDayViewSet, ProgressView
+    register, login, save_completed_workout, user_profile, update_profile,
+    get_exercise_types, ExerciseOfTheDayViewSet, ProgressView,change_password, delete_account,
+    WorkoutChallengeViewSet, UserChallengeViewSet,
+
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -17,7 +20,8 @@ router.register(r'routine-exercises', RoutineExerciseViewSet, basename='routinee
 router.register(r'completed-exercises', CompletedExerciseViewSet, basename='completedexercise')
 router.register(r'reminders', ReminderViewSet, basename='reminder')
 router.register(r'exercise-of-the-day', ExerciseOfTheDayViewSet)
-
+router.register(r'workout-challenges', WorkoutChallengeViewSet)
+router.register(r'user-challenges', UserChallengeViewSet, basename='user-challenge')
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', register, name='register'),
@@ -29,6 +33,11 @@ urlpatterns = [
     path('favorite-exercises/', ExerciseViewSet.as_view({'get': 'favorites'}), name='favorite-exercises'),
     path('toggle-favorite-exercise/', ExerciseViewSet.as_view({'post': 'toggle_favorite'}), name='toggle-favorite-exercise'),
     path('progress/', ProgressView.as_view(), name='progress'),
+    path('change-password/', change_password, name='change_password'),
+    path('delete-account/', delete_account, name='delete_account'),
+    # path('join-challenge/<int:challenge_id>/', join_challenge, name='join-challenge'),
+    # path('update-challenge-progress/<int:user_challenge_id>/', update_challenge_progress, name='update-challenge-progress'),
+
 ]
 
 if settings.DEBUG:
